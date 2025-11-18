@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { ChatButton } from "./components/ChatButton";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {children}
+          <ChatButton />
         </ThemeProvider>
       </body>
     </html>

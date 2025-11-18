@@ -40,17 +40,7 @@ const navLinks = [
       { name: 'Itinerary Planning', href: '/services/itinerary', icon: Map },
     ],
   },
-  {
-    name: 'About Us',
-    href: '/about',
-    icon: Info,
-    dropdown: [
-      { name: 'Our Story', href: '/about/story', icon: Edit },
-      { name: 'Our Team', href: '/about/team', icon: Users },
-      { name: 'Mission & Vision', href: '/about/mission', icon: Target },
-      { name: 'Careers', href: '/about/careers', icon: Briefcase },
-    ],
-  },
+  { name: 'About Us', href: '/about', icon: Info },
   { name: 'Testimonials', href: '/testimonials', icon: Star },
   { name: 'Contact', href: '/contact', icon: Mail },
 ];

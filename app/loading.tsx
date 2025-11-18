@@ -37,14 +37,41 @@ export default function Loading() {
           className="text-center mb-12"
         >
           <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="inline-block mb-4"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{
+              scale: [0.8, 1.1, 1],
+              opacity: 1
+            }}
+            transition={{
+              duration: 0.8,
+              ease: 'easeOut'
+            }}
           >
-            <Globe className="w-16 h-16 sm:w-20 sm:h-20 text-primary" strokeWidth={1.5} />
+            <motion.img
+              src="https://static.wixstatic.com/media/10e97e_67e4d7a16b5546c2b9c8a6d5059c2b80~mv2.png/v1/crop/x_766,y_673,w_3882,h_2984/fill/w_124,h_104,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/10e97e_67e4d7a16b5546c2b9c8a6d5059c2b80~mv2.png"
+              alt="Godfirst Education and Tours"
+              className="w-20 h-auto sm:w-28 mx-auto"
+              animate={{
+                y: [0, -10, 0],
+                rotateY: [0, 360]
+              }}
+              transition={{
+                y: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                },
+                rotateY: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }
+              }}
+            />
           </motion.div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            God First Education & Tours
+            Godfirst Education & Tours
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Preparing your journey...
