@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Light mode - Clean white background with strong blue */
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+    --primary: 29 78 216;
+    --secondary: 245 158 11;
+    --accent: 14 165 233;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --border: 226 232 240;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+  }
+
+  .dark {
+    /* Dark mode - Dark background with bright blue */
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+    --primary: 59 130 246;
+    --secondary: 251 191 36;
+    --accent: 56 189 248;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --border: 51 65 85;
+    --card: 30 41 59;
+    --card-foreground: 248 250 252;
+  }
+}
+
+@theme {
+  --font-sans: var(--font-raleway);
+
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-primary: rgb(var(--primary));
+  --color-secondary: rgb(var(--secondary));
+  --color-accent: rgb(var(--accent));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-border: rgb(var(--border));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-raleway), -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Gradient animation keyframes */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% auto;
+  animation: gradient 3s ease infinite;
+}
+
+/* Grid pattern for 404 page */
+.bg-grid-pattern {
+  background-image: linear-gradient(rgb(var(--border)) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--border)) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
