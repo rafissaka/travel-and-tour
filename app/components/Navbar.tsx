@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { ThemeToggle } from './ThemeToggle';
 import {
   Home,
   Users,
@@ -22,6 +21,10 @@ import {
   Map,
   Compass,
   Globe,
+  LogIn,
+  UserPlus,
+  User as UserIcon,
+  LogOut,
 } from 'lucide-react';
 
 const navLinks = [
@@ -51,8 +54,29 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpenDropdown, setMobileOpenDropdown] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        // User not logged in
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -252,11 +276,41 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Right section - Theme Toggle & Mobile Menu */}
-          <div className="flex items-center space-x-3 sm:space-x-6 shrink-0 ml-auto">
-            <div className="hidden lg:block">
-              <ThemeToggle />
-            </div>
+          {/* Right section - Auth & Mobile Menu */}
+          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0 ml-auto">
+            {/* Auth buttons - Desktop */}
+            {!isLoadingUser && (
+              <div className="hidden lg:flex items-center space-x-2">
+                {user ? (
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 group"
+                  >
+                    <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
+                      {user.firstName?.[0]}{user.lastName?.[0]}
+                    </div>
+                    <span className="max-w-[120px] truncate">{user.firstName} {user.lastName}</span>
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/auth/login"
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 group"
+                    >
+                      <LogIn className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                      Login
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 group"
+                    >
+                      <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <button
@@ -411,9 +465,42 @@ export function Navbar() {
             );
           })}
 
-          <div className="pt-6 mt-2 border-t border-border/50">
-            <ThemeToggle />
-          </div>
+          {/* Auth buttons - Mobile */}
+          {!isLoadingUser && (
+            <div className="pt-4 mt-2 border-t border-border/50 space-y-3">
+              {user ? (
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-3 w-full px-5 py-3.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
+                >
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">
+                    {user.firstName?.[0]}{user.lastName?.[0]}
+                  </div>
+                  <span>{user.firstName} {user.lastName}</span>
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 border border-border"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/20"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

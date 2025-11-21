@@ -443,8 +443,8 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        {/* Dock Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 pb-4">
+        {/* Dock Navigation - Hidden on small screens to avoid covering chat button */}
+        <div className="hidden md:block fixed bottom-0 left-0 right-0 z-50 pb-4">
           <Dock items={dockItems} />
         </div>
       </main>

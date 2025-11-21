@@ -16,6 +16,7 @@ import {
   Send
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -315,7 +316,7 @@ export function Footer() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="pt-6 sm:pt-8 border-t border-border"
         >
-          {/* Social Links */}
+          {/* Social Links & Theme Toggle */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 mb-6">
             <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
               {socialLinks.map((social, index) => (
@@ -332,6 +333,9 @@ export function Footer() {
                   <social.icon size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </motion.a>
               ))}
+              <div className="ml-2">
+                <ThemeToggle />
+              </div>
             </div>
 
             {/* Legal Links */}

@@ -3,6 +3,7 @@ import { Raleway } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { ChatButton } from "./components/ChatButton";
+import { Providers } from "./providers";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -49,10 +50,12 @@ export default function RootLayout({
       <body
         className={`${raleway.variable} antialiased`}
       >
-        <ThemeProvider>
-          {children}
-          <ChatButton />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider>
+            {children}
+            <ChatButton />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

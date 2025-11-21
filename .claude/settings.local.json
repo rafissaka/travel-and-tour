@@ -3,7 +3,24 @@
     "allow": [
       "Bash(bun add:*)",
       "Read(//mnt/c/Users/Rahina/Downloads/**)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npx prisma:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(bun run:*)",
+      "WebFetch(domain:txpzmxwjxnzhuxofsmgy.supabase.co)",
+      "Bash(find:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
+      "Bash(node:*)",
+      "Read(//mnt/c/Users/Rahina/Desktop/**)",
+      "Bash(bun remove:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(./node_modules/.bin/prisma:*)",
+      "Bash(bun install:*)"
     ],
     "deny": [],
     "ask": []

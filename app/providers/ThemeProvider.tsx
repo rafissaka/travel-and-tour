@@ -21,29 +21,35 @@ function getResolvedTheme(theme: Theme): 'light' | 'dark' {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Initialize from localStorage during SSR/initial render
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') as Theme | null;
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')) {
+        return savedTheme;
+      }
+    }
+    return 'system';
+  });
   const [mounted, setMounted] = useState(false);
 
   // Calculate resolved theme without setState
   const resolvedTheme = useMemo(() => getResolvedTheme(theme), [theme]);
 
-  // Initialize theme from localStorage on mount
+  // Mark as mounted and sync with DOM
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')) {
-      setTheme(savedTheme);
-    }
 
-    // Apply initial theme
+    // Sync state with what's already applied in DOM from script tag
     const root = document.documentElement;
-    const initialTheme = savedTheme || 'system';
-    const applied = getResolvedTheme(initialTheme);
+    const hasDarkClass = root.classList.contains('dark');
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
 
-    if (applied === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
+    console.log('ThemeProvider mounted:', { savedTheme, hasDarkClass, currentTheme: theme });
+
+    // If there's a mismatch, fix it
+    if (savedTheme && savedTheme !== theme) {
+      setTheme(savedTheme);
     }
   }, []);
 
