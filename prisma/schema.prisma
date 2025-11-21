@@ -32,6 +32,28 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum Sex {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ProcessStatus {
+  INQUIRY
+  DOCUMENTS_PENDING
+  DOCUMENTS_RECEIVED
+  DOCUMENTS_VERIFIED
+  PAYMENT_PENDING
+  PAYMENT_PARTIAL
+  PAYMENT_COMPLETE
+  VISA_PROCESSING
+  VISA_APPROVED
+  VISA_REJECTED
+  TRAVEL_ARRANGED
+  COMPLETED
+  CANCELLED
+}
+
 enum EventStatus {
   UPCOMING
   ONGOING
@@ -68,6 +90,7 @@ model User {
   createdServices Service[]
   testimonials  Testimonial[]
   uploadedGalleryImages GalleryImage[]
+  createdTravelers Traveler[]
 
   @@map("users")
 }
@@ -253,4 +276,40 @@ model GalleryImage {
   uploadedBy User? @relation(fields: [uploadedById], references: [id])
 
   @@map("gallery_images")
+}
+
+// Traveler/Client Management
+model Traveler {
+  id              String        @id @default(uuid())
+  firstName       String        @map("first_name") @db.VarChar(100)
+  middleName      String?       @map("middle_name") @db.VarChar(100)
+  surname         String        @db.VarChar(100)
+  sex             Sex
+  nationality     String        @db.VarChar(100)
+  dateOfBirth     DateTime      @map("date_of_birth") @db.Date
+  placeOfBirth    String        @map("place_of_birth") @db.VarChar(200)
+  passportNumber  String        @map("passport_number") @db.VarChar(50)
+  workTitle       String?       @map("work_title") @db.VarChar(200)
+  email           String?       @db.VarChar(255)
+  phone           String?       @db.VarChar(20)
+  address         String?       @db.Text
+
+  // Payment tracking
+  paymentAmount   Decimal?      @map("payment_amount") @db.Decimal(10, 2)
+  paymentDate     DateTime?     @map("payment_date")
+  paymentStatus   PaymentStatus @default(PENDING) @map("payment_status")
+
+  // Process tracking
+  processStatus   ProcessStatus @default(INQUIRY) @map("process_status")
+  notes           String?       @db.Text
+
+  // Metadata
+  createdById     String        @map("created_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  deletedAt       DateTime?     @map("deleted_at")
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@map("travelers")
 }

@@ -8,6 +8,8 @@ import { Footer } from './components/Footer';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useState } from 'react';
 import { Plane, GraduationCap, Globe, MapPin, Award, Users } from 'lucide-react';
+import Image from 'next/image';
+import cloudinaryLoader from '@/lib/cloudinary-loader';
 
 // Generate floating elements outside component
 const generateFloatingElements = () =>
@@ -89,10 +91,14 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-8 border-white">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800"
                       alt="Travel destination"
-                      className="w-full h-full object-cover"
+                      fill
+                      priority
+                      sizes="350px"
+                      loader={cloudinaryLoader}
+                      className="object-cover"
                     />
                   </div>
                 </motion.div>
@@ -104,13 +110,17 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-8 border-white">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1530789253388-582c481c54b0?q=80&w=800"
                       alt="Group travel"
-                      className="w-full h-full object-cover"
+                      fill
+                      priority
+                      sizes="300px"
+                      loader={cloudinaryLoader}
+                      className="object-cover"
                     />
                     {/* Yellow Discount Banner */}
-                    <div className="absolute bottom-4 left-4 right-4 bg-yellow-400 text-gray-900 px-4 py-3 rounded-lg shadow-lg">
+                    <div className="absolute bottom-4 left-4 right-4 bg-yellow-400 text-gray-900 px-4 py-3 rounded-lg shadow-lg z-10">
                       <div className="text-sm font-bold">Get Up</div>
                       <div className="text-2xl font-black">20% Discount</div>
                     </div>

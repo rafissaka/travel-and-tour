@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import cloudinaryLoader from '@/lib/cloudinary-loader';
 
 interface MasonryItem {
   id: string;
@@ -17,6 +19,7 @@ export function Masonry() {
   const [images, setImages] = useState<MasonryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [imageLoadStates, setImageLoadStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -157,11 +160,21 @@ export function Masonry() {
               onMouseEnter={() => setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              {/* Image */}
-              <img
+              {/* Image with skeleton loader */}
+              {!imageLoadStates[item.id] && (
+                <div className="absolute inset-0 bg-muted/20 animate-pulse">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent animate-shimmer bg-[length:200%_100%]" />
+                </div>
+              )}
+              <Image
                 src={item.imageUrl}
                 alt={item.title || 'Gallery image'}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                loading="lazy"
+                loader={cloudinaryLoader}
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                onLoad={() => setImageLoadStates(prev => ({ ...prev, [item.id]: true }))}
               />
 
               {/* Featured Badge */}

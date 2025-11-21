@@ -21,6 +21,7 @@ import {
   Briefcase,
   Shield,
   Star,
+  Users,
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -29,6 +30,7 @@ const sidebarLinks = [
   { name: 'Events', href: '/profile/events', icon: Calendar, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Appointments', href: '/profile/appointments', icon: CalendarCheck, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Services', href: '/profile/services', icon: Briefcase, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Clients', href: '/profile/clients', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Admins', href: '/profile/admins', icon: Shield, roles: ['SUPER_ADMIN'] },
   { name: 'Testimonials', href: '/profile/testimonials', icon: Star, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'My Bookings', href: '/profile/bookings', icon: BookOpen, roles: ['USER'] },
