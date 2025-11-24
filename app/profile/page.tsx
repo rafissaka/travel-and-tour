@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, LogOut, Calendar, Shield, Edit, Sun, Moon, Monitor, Users, DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { User, Mail, Phone, LogOut, Calendar, Shield, Edit, Sun, Moon, Monitor, Users, DollarSign, CheckCircle, Clock, CalendarDays, Image, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [clientStats, setClientStats] = useState<any>(null);
+  const [contentStats, setContentStats] = useState<any>(null);
 
   // Debug theme
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function ProfilePage() {
         // Fetch client stats for admins
         if (data.user.role === 'ADMIN' || data.user.role === 'SUPER_ADMIN') {
           fetchClientStats();
+          fetchContentStats();
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -97,6 +99,39 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error fetching client stats:', error);
+    }
+  };
+
+  const fetchContentStats = async () => {
+    try {
+      const [eventsRes, galleryRes, servicesRes] = await Promise.all([
+        fetch('/api/events'),
+        fetch('/api/gallery'),
+        fetch('/api/services'),
+      ]);
+
+      const events = eventsRes.ok ? await eventsRes.json() : [];
+      const gallery = galleryRes.ok ? await galleryRes.json() : [];
+      const services = servicesRes.ok ? await servicesRes.json() : [];
+
+      setContentStats({
+        events: {
+          total: events.length,
+          active: events.filter((e: any) => e.isActive).length,
+          upcoming: events.filter((e: any) => e.status === 'UPCOMING').length,
+          featured: events.filter((e: any) => e.isFeatured).length,
+        },
+        gallery: {
+          total: gallery.length,
+          active: gallery.filter((g: any) => g.isActive).length,
+        },
+        services: {
+          total: services.length,
+          active: services.filter((s: any) => s.isActive).length,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching content stats:', error);
     }
   };
 
@@ -261,6 +296,106 @@ export default function ProfilePage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Admin Content Overview */}
+      {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && contentStats && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-6"
+        >
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Content Overview</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Events Card */}
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <CalendarDays className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <button
+                  onClick={() => router.push('/profile/events')}
+                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                >
+                  Manage →
+                </button>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Events</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-semibold text-foreground">{contentStats.events.total}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Active:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">{contentStats.events.active}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Upcoming:</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">{contentStats.events.upcoming}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Featured:</span>
+                  <span className="font-semibold text-yellow-600 dark:text-yellow-400">{contentStats.events.featured}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Gallery Card */}
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Image className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <button
+                  onClick={() => router.push('/profile/gallery')}
+                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                >
+                  Manage →
+                </button>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Gallery</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Images:</span>
+                  <span className="font-semibold text-foreground">{contentStats.gallery.total}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Active:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">{contentStats.gallery.active}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Services Card */}
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                  <Briefcase className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <button
+                  onClick={() => router.push('/profile/services')}
+                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                >
+                  Manage →
+                </button>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Services</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-semibold text-foreground">{contentStats.services.total}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Active:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">{contentStats.services.active}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Admin Client Stats Overview */}
       {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && clientStats && (

@@ -147,8 +147,12 @@ model Event {
   description         String?      @db.Text
   imageUrl            String?      @map("image_url")
   location            String?      @db.VarChar(200)
+  locationLat         Float?       @map("location_lat")
+  locationLng         Float?       @map("location_lng")
   startDate           DateTime?    @map("start_date") @db.Date
   endDate             DateTime?    @map("end_date") @db.Date
+  startTime           String?      @map("start_time") @db.VarChar(20)
+  endTime             String?      @map("end_time") @db.VarChar(20)
   duration            String?      @db.VarChar(50)
   status              EventStatus  @default(UPCOMING)
   category            String?      @db.VarChar(50)
