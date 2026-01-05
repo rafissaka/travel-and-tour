@@ -8,6 +8,16 @@ import { useEffect, useState } from 'react';
 export default function NotFound() {
   const router = useRouter();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [floatingElements] = useState(() => 
+    Array.from({ length: 15 }, (_, i) => ({
+      id: i,
+      size: Math.random() * 60 + 20,
+      delay: Math.random() * 2,
+      duration: Math.random() * 3 + 3,
+      x: Math.random() * 100,
+      y: Math.random() * 100
+    }))
+  );
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -20,15 +30,6 @@ export default function NotFound() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  const floatingElements = Array.from({ length: 15 }, (_, i) => ({
-    id: i,
-    size: Math.random() * 60 + 20,
-    delay: Math.random() * 2,
-    duration: Math.random() * 3 + 3,
-    x: Math.random() * 100,
-    y: Math.random() * 100
-  }));
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center">

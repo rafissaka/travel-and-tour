@@ -25,6 +25,32 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Handle auth code exchange (for password reset and email confirmations)
+  const code = request.nextUrl.searchParams.get('code')
+  const type = request.nextUrl.searchParams.get('type')
+
+  if (code) {
+    // For password recovery, use verifyOtp instead of exchangeCodeForSession
+    if (request.nextUrl.pathname === '/auth/reset-password') {
+      console.log('Password reset code detected, using verifyOtp');
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: code,
+        type: 'recovery'
+      })
+      if (error) {
+        console.error('Password reset verification error:', error)
+      } else {
+        console.log('Password reset verification successful')
+      }
+    } else {
+      // For other auth flows, use regular code exchange
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        console.error('Code exchange error in middleware:', error)
+      }
+    }
+  }
+
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.

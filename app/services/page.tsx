@@ -5,7 +5,8 @@ import { Footer } from '../components/Footer';
 import Dock from '../components/Dock ';
 import Shuffle from '../components/Shuffle';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Plane,
@@ -18,111 +19,98 @@ import {
   Compass,
   ArrowRight,
   CheckCircle2,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 
-export default function ServicesPage() {
-  const services = [
-    {
-      id: 'family-travel',
-      icon: Users,
-      title: 'Family Travel Consultation',
-      tagline: 'PRIVATE ADVENTURES',
-      description: 'Personalized travel planning for families seeking memorable experiences together.',
-      image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop',
-      features: [
-        'Custom itineraries for all ages',
-        'Family-friendly accommodations',
-        'Kid-approved activities',
-        'Safety-first approach'
-      ],
-      color: '#10B981'
-    },
-    {
-      id: 'study-programs',
-      icon: GraduationCap,
-      title: 'Study & Summer Programs Abroad',
-      tagline: 'DEDICATED SUPPORT',
-      description: 'Educational programs that combine learning with cultural immersion.',
-      image: 'https://images.unsplash.com/photo-1630569265403-9f38855679fa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8U3R1ZHklMjAlMjYlMjBTdW1tZXIlMjBQcm9ncmFtcyUyMEFicm9hZHxlbnwwfHwwfHx8MA%3D%3D',
-      features: [
-        'Academic excellence programs',
-        'Cultural exchange opportunities',
-        'Language immersion courses',
-        '24/7 student support'
-      ],
-      color: '#3B82F6'
-    },
-    {
-      id: 'tours',
-      icon: Compass,
-      title: 'International & Domestic Tours',
-      tagline: 'EXCLUSIVE ADVENTURES',
-      description: 'Curated tours showcasing the best destinations across Ghana and beyond.',
-      image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop',
-      features: [
-        'Expert local guides',
-        'Small group experiences',
-        'Hidden gem locations',
-        'Cultural authenticity'
-      ],
-      color: '#F59E0B'
-    },
-    {
-      id: 'reservations',
-      icon: Hotel,
-      title: 'Hotel & Flight Reservations',
-      tagline: 'EVERYTHING YOU NEED',
-      description: 'Seamless booking services for your travel accommodation and flights.',
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-      features: [
-        'Best price guarantees',
-        'Premium partnerships',
-        'Flexible cancellation',
-        'VIP upgrades available'
-      ],
-      color: '#8B5CF6'
-    },
-    {
-      id: 'visa-assistance',
-      icon: Globe,
-      title: 'International Travel & Visa Assistance',
-      tagline: 'PERSONALIZED APPROACH',
-      description: 'Expert guidance through visa applications and travel documentation.',
-      image: 'https://images.unsplash.com/photo-1655722724170-b3ab67a48791?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8SW50ZXJuYXRpb25hbCUyMFRyYXZlbCUyMCUyNiUyMFZpc2ElMjBBc3Npc3RhbmNlfGVufDB8fDB8fHww',
-      features: [
-        'Visa application support',
-        'Document verification',
-        'Embassy coordination',
-        'Travel insurance advice'
-      ],
-      color: '#EF4444'
-    },
-    {
-      id: 'itinerary',
-      icon: Map,
-      title: 'Itinerary Planning',
-      tagline: 'EXCEEDING EXPECTATIONS',
-      description: 'Meticulously crafted travel plans tailored to your preferences.',
-      image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop',
-      features: [
-        'Customized schedules',
-        'Budget optimization',
-        'Activity coordination',
-        'Real-time adjustments'
-      ],
-      color: '#06B6D4'
-    }
-  ];
+interface Service {
+  id: string;
+  title: string;
+  slug: string;
+  tagline: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  features: string[];
+  color: string | null;
+  icon?: any;
+}
 
+const iconMap: Record<string, any> = {
+  Users,
+  Plane,
+  GraduationCap,
+  Hotel,
+  Map,
+  Globe,
+  Compass,
+  Calendar
+};
+
+export default function ServicesPage() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState(0);
 
-  const dockItems = services.map((service, index) => ({
-    icon: <service.icon className="w-6 h-6 text-white" />,
-    label: service.title,
-    onClick: () => setSelectedService(index),
-    className: selectedService === index ? 'ring-2 ring-primary' : ''
-  }));
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('/api/services?active=true');
+      if (response.ok) {
+        const data = await response.json();
+        // Map icon names to actual icon components
+        const servicesWithIcons = data.map((service: any) => ({
+          ...service,
+          icon: service.iconName && iconMap[service.iconName] ? iconMap[service.iconName] : Plane,
+          features: Array.isArray(service.features) ? service.features : []
+        }));
+        setServices(servicesWithIcons);
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dockItems = services.map((service, index) => {
+    const ServiceIcon = service.icon || Plane;
+    return {
+      icon: <ServiceIcon className="w-6 h-6 text-white" />,
+      label: service.title,
+      onClick: () => setSelectedService(index),
+      className: selectedService === index ? 'ring-2 ring-primary' : ''
+    };
+  });
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (services.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-foreground mb-4">No Services Available</h1>
+            <p className="text-muted-foreground">Check back later for our services.</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -231,14 +219,14 @@ export default function ServicesPage() {
                   transition={{ duration: 0.3 }}
                 >
                   <img
-                    src={services[selectedService].image}
+                    src={services[selectedService].imageUrl || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop'}
                     alt={services[selectedService].title}
                     className="w-full h-full object-cover"
                   />
                   <div
                     className="absolute inset-0 opacity-20"
                     style={{
-                      background: `linear-gradient(135deg, ${services[selectedService].color}40, transparent)`
+                      background: `linear-gradient(135deg, ${services[selectedService].color || '#10B981'}40, transparent)`
                     }}
                   />
                 </motion.div>
@@ -250,13 +238,15 @@ export default function ServicesPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">
-                      {(() => {
-                        const ServiceIcon = services[selectedService].icon;
-                        return <ServiceIcon className="w-4 h-4" />;
-                      })()}
-                      {services[selectedService].tagline}
-                    </div>
+                    {services[selectedService].tagline && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">
+                        {(() => {
+                          const ServiceIcon = services[selectedService].icon || Plane;
+                          return <ServiceIcon className="w-4 h-4" />;
+                        })()}
+                        {services[selectedService].tagline}
+                      </div>
+                    )}
 
                     <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
                       {services[selectedService].title}
@@ -266,32 +256,36 @@ export default function ServicesPage() {
                       {services[selectedService].description}
                     </p>
 
-                    <div className="space-y-3 mb-8">
-                      {services[selectedService].features.map((feature, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 + idx * 0.1 }}
-                          className="flex items-center gap-3"
-                        >
-                          <CheckCircle2
-                            className="w-5 h-5 flex-shrink-0"
-                            style={{ color: services[selectedService].color }}
-                          />
-                          <span className="text-foreground">{feature}</span>
-                        </motion.div>
-                      ))}
-                    </div>
+                    {services[selectedService].features && services[selectedService].features.length > 0 && (
+                      <div className="space-y-3 mb-8">
+                        {services[selectedService].features.slice(0, 4).map((feature, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + idx * 0.1 }}
+                            className="flex items-center gap-3"
+                          >
+                            <CheckCircle2
+                              className="w-5 h-5 flex-shrink-0"
+                              style={{ color: services[selectedService].color || '#10B981' }}
+                            />
+                            <span className="text-foreground">{feature}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
 
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-6 py-3 bg-primary hover:bg-accent text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                    >
-                      Learn More
-                      <ArrowRight className="w-5 h-5" />
-                    </motion.button>
+                    <Link href={`/services/${services[selectedService].slug}`}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-6 py-3 bg-primary hover:bg-accent text-white font-bold rounded-full transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                      >
+                        Learn More
+                        <ArrowRight className="w-5 h-5" />
+                      </motion.button>
+                    </Link>
                   </motion.div>
                 </div>
               </div>
@@ -317,74 +311,80 @@ export default function ServicesPage() {
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{
-                    y: -10,
-                    scale: 1.02
-                  }}
-                  className="group relative bg-background border-2 border-border rounded-2xl overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedService(index)}
-                >
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div
-                      className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity"
-                      style={{
-                        background: `linear-gradient(180deg, transparent, ${service.color}80)`
-                      }}
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: `${service.color}20` }}
-                      >
-                        <service.icon className="w-6 h-6" style={{ color: service.color }} />
-                      </div>
-                      <div className="text-xs font-bold text-primary">{service.tagline}</div>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {service.title}
-                    </h3>
-
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {service.description}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-                      View Details
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                    </div>
-                  </div>
-
-                  {/* Selection Indicator */}
-                  {selectedService === index && (
+              {services.map((service, index) => {
+                const ServiceIcon = service.icon || Plane;
+                return (
+                  <Link key={service.id} href={`/services/${service.slug}`}>
                     <motion.div
-                      layoutId="selected-service"
-                      className="absolute top-4 right-4 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{
+                        y: -10,
+                        scale: 1.02
+                      }}
+                      className="group relative bg-background border-2 border-border rounded-2xl overflow-hidden cursor-pointer h-full"
+                      onClick={() => setSelectedService(index)}
                     >
-                      <CheckCircle2 className="w-5 h-5 text-white" />
+                      {/* Image */}
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={service.imageUrl || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop'}
+                          alt={service.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div
+                          className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity"
+                          style={{
+                            background: `linear-gradient(180deg, transparent, ${service.color || '#10B981'}80)`
+                          }}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: `${service.color || '#10B981'}20` }}
+                          >
+                            <ServiceIcon className="w-6 h-6" style={{ color: service.color || '#10B981' }} />
+                          </div>
+                          {service.tagline && (
+                            <div className="text-xs font-bold text-primary">{service.tagline}</div>
+                          )}
+                        </div>
+
+                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {service.title}
+                        </h3>
+
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
+
+                        <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+                          View Details
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                        </div>
+                      </div>
+
+                      {/* Selection Indicator */}
+                      {selectedService === index && (
+                        <motion.div
+                          layoutId="selected-service"
+                          className="absolute top-4 right-4 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                        >
+                          <CheckCircle2 className="w-5 h-5 text-white" />
+                        </motion.div>
+                      )}
                     </motion.div>
-                  )}
-                </motion.div>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -54,6 +54,28 @@ enum ProcessStatus {
   CANCELLED
 }
 
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ReservationType {
+  FLIGHT
+  HOTEL
+  BOTH
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 enum EventStatus {
   UPCOMING
   ONGOING
@@ -91,6 +113,11 @@ model User {
   testimonials  Testimonial[]
   uploadedGalleryImages GalleryImage[]
   createdTravelers Traveler[]
+  applications  Application[]
+  createdPrograms Program[]
+  reservations  Reservation[]
+  chatConversations ChatConversation[]
+  assignedChats ChatConversation[] @relation("AdminChats")
 
   @@map("users")
 }
@@ -115,17 +142,17 @@ model UserProfile {
 // Services Management
 model Service {
   id              String    @id @default(uuid())
-  title           String    @db.VarChar(200)
-  slug            String    @unique @db.VarChar(200)
-  tagline         String?   @db.VarChar(100)
+  title           String    @db.VarChar(300)
+  slug            String    @unique @db.VarChar(300)
+  tagline         String?   @db.VarChar(200)
   description     String?   @db.Text
   fullDescription String?   @map("full_description") @db.Text
-  iconName        String?   @map("icon_name") @db.VarChar(50)
-  category        String?   @db.VarChar(50)
-  color           String?   @db.VarChar(20)
-  imageUrl        String?   @map("image_url")
+  iconName        String?   @map("icon_name") @db.VarChar(100)
+  category        String?   @db.VarChar(100)
+  color           String?   @db.VarChar(50)
+  imageUrl        String?   @map("image_url") @db.Text
   features        Json?     // Array of features
-  priceRange      String?   @map("price_range") @db.VarChar(50)
+  priceRange      String?   @map("price_range") @db.VarChar(100)
   isActive        Boolean   @default(true) @map("is_active")
   displayOrder    Int       @default(0) @map("display_order")
   createdById     String?   @map("created_by")
@@ -135,8 +162,57 @@ model Service {
   createdBy User?     @relation(fields: [createdById], references: [id])
   bookings  Booking[]
   wishlists UserWishlist[]
+  programs  Program[]
 
   @@map("services")
+}
+
+// Programs under Services (e.g., Stipendium Hungaricum under Study Programs)
+model Program {
+  id              String    @id @default(uuid())
+  serviceId       String    @map("service_id")
+
+  // Program Details
+  title           String    @db.VarChar(300)
+  slug            String    @unique @db.VarChar(300)
+  tagline         String?   @db.VarChar(200)
+  description     String?   @db.Text
+  fullDescription String?   @map("full_description") @db.Text
+
+  // Program Specifics
+  country         String?   @db.VarChar(100)
+  university      String?   @db.VarChar(300)
+  duration        String?   @db.VarChar(100)
+  startDate       DateTime? @map("start_date") @db.Date
+  endDate         DateTime? @map("end_date") @db.Date
+  deadline        DateTime? @db.Date
+
+  // Display
+  imageUrl        String?   @map("image_url") @db.Text
+  features        Json?     // Array of features
+  requirements    Json?     // Array of requirements
+  benefits        Json?     // Array of benefits
+
+  // Pricing
+  tuitionFee      String?   @map("tuition_fee") @db.VarChar(100)
+  applicationFee  String?   @map("application_fee") @db.VarChar(100)
+  scholarshipType String?   @map("scholarship_type") @db.VarChar(100)
+
+  // Status
+  isActive        Boolean   @default(true) @map("is_active")
+  displayOrder    Int       @default(0) @map("display_order")
+  availableSlots  Int?      @map("available_slots")
+
+  // Metadata
+  createdById     String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdBy    User?         @relation(fields: [createdById], references: [id])
+  applications Application[]
+
+  @@map("programs")
 }
 
 // Events/Tours Management
@@ -316,4 +392,221 @@ model Traveler {
   createdBy User @relation(fields: [createdById], references: [id])
 
   @@map("travelers")
+}
+
+// Study & Summer Programs Applications
+model Application {
+  id                String            @id @default(uuid())
+
+  // Program Link (optional - for when applying to specific program)
+  programId         String?           @map("program_id")
+
+  // Program Details (still stored for flexibility)
+  programName       String            @map("program_name") @db.VarChar(300)
+  programCountry    String            @map("program_country") @db.VarChar(100)
+  programUniversity String?           @map("program_university") @db.VarChar(300)
+  programStartDate  DateTime?         @map("program_start_date") @db.Date
+  programEndDate    DateTime?         @map("program_end_date") @db.Date
+  programDuration   String?           @map("program_duration") @db.VarChar(100)
+
+  // Personal Information
+  firstName         String?           @map("first_name") @db.VarChar(100)
+  middleName        String?           @map("middle_name") @db.VarChar(100)
+  lastName          String?           @map("last_name") @db.VarChar(100)
+  dateOfBirth       DateTime?         @map("date_of_birth") @db.Date
+  placeOfBirth      String?           @map("place_of_birth") @db.VarChar(200)
+  nationality       String?           @db.VarChar(100)
+  sex               Sex?
+
+  // Contact Information
+  email             String?           @db.VarChar(200)
+  phone             String?           @db.VarChar(20)
+  alternativePhone  String?           @map("alternative_phone") @db.VarChar(20)
+  address           String?           @db.Text
+  city              String?           @db.VarChar(100)
+  state             String?           @db.VarChar(100)
+  postalCode        String?           @map("postal_code") @db.VarChar(20)
+  country           String?           @db.VarChar(100)
+
+  // Family Information
+  motherName        String?           @map("mother_name") @db.VarChar(200)
+  motherOccupation  String?           @map("mother_occupation") @db.VarChar(200)
+  motherPhone       String?           @map("mother_phone") @db.VarChar(20)
+  fatherName        String?           @map("father_name") @db.VarChar(200)
+  fatherOccupation  String?           @map("father_occupation") @db.VarChar(200)
+  fatherPhone       String?           @map("father_phone") @db.VarChar(20)
+
+  // Emergency Contact
+  emergencyContactName   String?  @map("emergency_contact_name") @db.VarChar(200)
+  emergencyContactPhone  String?  @map("emergency_contact_phone") @db.VarChar(20)
+  emergencyContactRelation String? @map("emergency_contact_relation") @db.VarChar(100)
+
+  // Educational Background
+  currentEducationLevel  String?  @map("current_education_level") @db.VarChar(100)
+  schoolName             String?  @map("school_name") @db.VarChar(300)
+  gradeLevel             String?  @map("grade_level") @db.VarChar(50)
+  gpa                    String?  @db.VarChar(20)
+  education              Json?    // Array of education history entries
+
+  // Work Experience
+  workExperience         Json?    @map("work_experience") // Array of work experience entries
+
+  // Home Address
+  homeNumber             String?  @map("home_number") @db.VarChar(50)
+  streetAddress          String?  @map("street_address") @db.Text
+  postalAddress          String?  @map("postal_address") @db.VarChar(100)
+
+  // Passport Information
+  passportNumber         String?  @map("passport_number") @db.VarChar(50)
+  passportIssueDate      DateTime? @map("passport_issue_date") @db.Date
+  passportExpiryDate     DateTime? @map("passport_expiry_date") @db.Date
+  passportIssueCountry   String?  @map("passport_issue_country") @db.VarChar(100)
+
+  // Additional Information
+  previousTravel         Boolean  @default(false) @map("previous_travel")
+  previousTravelDetails  String?  @map("previous_travel_details") @db.Text
+  medicalConditions      String?  @map("medical_conditions") @db.Text
+  specialRequirements    String?  @map("special_requirements") @db.Text
+  motivation             String?  @db.Text
+
+  // Documents (URLs to uploaded files)
+  passportCopyUrl        String?  @map("passport_copy_url")
+  photoUrl               String?  @map("photo_url")
+  birthCertificateUrl    String?  @map("birth_certificate_url")
+  transcriptUrl          String?  @map("transcript_url")
+  wassceUrl              String?  @map("wassce_url")
+  medicalResultsUrl      String?  @map("medical_results_url")
+  additionalDocuments    Json?    @map("additional_documents") // Array of document URLs
+
+  // Application Status
+  status                 ApplicationStatus @default(DRAFT)
+  submittedAt            DateTime?         @map("submitted_at")
+  reviewedAt             DateTime?         @map("reviewed_at")
+  reviewedBy             String?           @map("reviewed_by")
+  reviewNotes            String?           @map("review_notes") @db.Text
+
+  // Payment Information
+  applicationFee         Decimal?  @map("application_fee") @db.Decimal(10, 2)
+  paymentStatus          PaymentStatus @default(PENDING) @map("payment_status")
+  paymentReference       String?   @map("payment_reference") @db.VarChar(100)
+
+  // Metadata
+  userId                 String    @map("user_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
+
+  @@map("applications")
+}
+
+// Hotel & Flight Reservations
+model Reservation {
+  id                String            @id @default(uuid())
+  userId            String            @map("user_id")
+  
+  // Reservation Type
+  reservationType   ReservationType   @map("reservation_type")
+  status            ReservationStatus @default(PENDING)
+  
+  // Personal Information
+  fullName          String            @map("full_name") @db.VarChar(200)
+  email             String            @db.VarChar(200)
+  phone             String            @db.VarChar(20)
+  
+  // Flight Details (if applicable)
+  flightType        String?           @map("flight_type") @db.VarChar(20) // ONE_WAY, ROUND_TRIP
+  departureCity     String?           @map("departure_city") @db.VarChar(200)
+  arrivalCity       String?           @map("arrival_city") @db.VarChar(200)
+  departureDate     DateTime?         @map("departure_date") @db.Date
+  returnDate        DateTime?         @map("return_date") @db.Date
+  passengers        Int?              @default(1)
+  travelClass       String?           @map("travel_class") @db.VarChar(50) // ECONOMY, BUSINESS, FIRST_CLASS
+  
+  // Hotel Details (if applicable)
+  hotelCity         String?           @map("hotel_city") @db.VarChar(200)
+  checkInDate       DateTime?         @map("check_in_date") @db.Date
+  checkOutDate      DateTime?         @map("check_out_date") @db.Date
+  rooms             Int?              @default(1)
+  guests            Int?              @default(1)
+  hotelPreference   String?           @map("hotel_preference") @db.VarChar(50) // 3_STAR, 4_STAR, 5_STAR
+  
+  // Additional Information
+  specialRequests   String?           @map("special_requests") @db.Text
+  
+  // Metadata
+  confirmedAt       DateTime?         @map("confirmed_at")
+  cancelledAt       DateTime?         @map("cancelled_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reservations")
+}
+
+// Chat System Models
+enum ChatMessageSender {
+  USER
+  ADMIN
+  AI
+}
+
+enum ChatStatus {
+  ACTIVE
+  RESOLVED
+  PENDING_ADMIN
+}
+
+model ChatConversation {
+  id                String      @id @default(uuid())
+  userId            String?     @map("user_id")
+  visitorName       String?     @map("visitor_name") @db.VarChar(200)
+  visitorEmail      String?     @map("visitor_email") @db.VarChar(200)
+  status            ChatStatus  @default(ACTIVE)
+  assignedAdminId   String?     @map("assigned_admin_id")
+  lastMessageAt     DateTime?   @map("last_message_at")
+  isAdminOnline     Boolean     @default(false) @map("is_admin_online")
+  adminLastSeenAt   DateTime?   @map("admin_last_seen_at")
+  resolvedAt        DateTime?   @map("resolved_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignedAdmin User?         @relation("AdminChats", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  messages      ChatMessage[]
+  
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String            @id @default(uuid())
+  conversationId String            @map("conversation_id")
+  sender         ChatMessageSender
+  senderId       String?           @map("sender_id")
+  message        String            @db.Text
+  isRead         Boolean           @default(false) @map("is_read")
+  readAt         DateTime?         @map("read_at")
+  metadata       Json?             // For storing AI confidence, suggested responses, etc.
+  createdAt      DateTime          @default(now()) @map("created_at")
+  
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+// Admin Status for Chat (to track online/offline)
+model AdminChatStatus {
+  id            String    @id @default(uuid())
+  adminId       String    @unique @map("admin_id")
+  isOnline      Boolean   @default(false) @map("is_online")
+  lastActiveAt  DateTime  @default(now()) @map("last_active_at")
+  autoRespond   Boolean   @default(true) @map("auto_respond")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@map("admin_chat_status")
 }

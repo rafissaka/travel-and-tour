@@ -224,12 +224,18 @@ export function Footer() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-secondary mt-0.5 flex-shrink-0" />
                 <span className="text-xs sm:text-sm text-muted-foreground">
-                  Jah Love Hotel, Kwashieman, Accra, Ghana
+                  Jah Love Junction, Kwashieman, Accra, Ghana
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-muted-foreground">+233 123 456 789</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground">0558735654</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground">0537579919</span>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />

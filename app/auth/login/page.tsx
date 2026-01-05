@@ -329,17 +329,17 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="relative my-8">
+          {/* <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-card text-muted-foreground">Or continue with</span>
             </div>
-          </div>
+          </div> */}
 
           {/* Social Login Buttons */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-2 gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -377,7 +377,7 @@ export default function LoginPage() {
               </svg>
               Facebook
             </motion.button>
-          </div>
+          </div> */}
 
           {/* Sign Up Link */}
           <p className="mt-8 text-center text-sm text-muted-foreground">

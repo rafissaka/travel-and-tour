@@ -63,25 +63,29 @@ export default function AboutPage() {
       icon: GraduationCap,
       title: 'Educational Services',
       description: 'Expert guidance for studying abroad, admissions, and academic programs worldwide.',
-      color: 'from-blue-500 to-cyan-500'
+      color: 'from-blue-500 to-cyan-500',
+      href: '/services'
     },
     {
       icon: Plane,
       title: 'Travel & Tours',
       description: 'Unforgettable journeys across Ghana and international destinations with curated experiences.',
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-purple-500 to-pink-500',
+      href: '/services'
     },
     {
       icon: Compass,
       title: 'Visa Assistance',
       description: 'Comprehensive visa support and documentation services for seamless international travel.',
-      color: 'from-orange-500 to-red-500'
+      color: 'from-orange-500 to-red-500',
+      href: '/services'
     },
     {
       icon: BookOpen,
       title: 'Cultural Programs',
       description: 'Immersive cultural experiences connecting travelers with authentic local traditions.',
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-green-500 to-emerald-500',
+      href: '/services'
     }
   ];
 
@@ -435,10 +439,11 @@ export default function AboutPage() {
             className="grid md:grid-cols-2 gap-6 lg:gap-8"
           >
             {services.map((service, index) => (
-              <motion.div
+              <motion.a
                 key={index}
+                href={service.href}
                 variants={fadeInUp}
-                className="group relative bg-card border border-border rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                className="group relative bg-card border border-border rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer block"
               >
                 {/* Gradient Background */}
                 <div className={`absolute inset-0 bg-linear-to-br ${service.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
@@ -465,7 +470,7 @@ export default function AboutPage() {
                     </motion.span>
                   </motion.div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </motion.div>
         </div>

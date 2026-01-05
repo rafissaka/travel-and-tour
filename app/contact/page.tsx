@@ -53,8 +53,8 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: 'Phone',
-      details: ['+233 123 456 789', '+233 987 654 321'],
-      link: 'tel:+233123456789',
+      details: ['0558735654', '0537579919'],
+      link: 'tel:+233558735654',
       color: 'from-blue-500 to-cyan-500'
     },
     {
@@ -67,7 +67,7 @@ export default function ContactPage() {
     {
       icon: MapPin,
       title: 'Address',
-      details: ['Jah Love Hotel', 'Kwashieman, Accra, Ghana'],
+      details: ['Jah Love Junction', 'Kwashieman, Accra, Ghana'],
       link: 'https://maps.app.goo.gl/whFBCWbGwmv9wPCc7',
       color: 'from-orange-500 to-red-500'
     },
@@ -429,7 +429,7 @@ export default function ContactPage() {
               <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
                 <div className="h-64 md:h-80 relative">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3971.0679851767984!2d-0.25142842404385535!3d5.582806133237897!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9d2b0f8b8b8b8%3A0xf8b8b8b8b8b8b8b8!2sJah%20Love%20Hotel!5e0!3m2!1sen!2sgh!4v1234567890"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248.17499336124845!2d-0.2707910033751672!3d5.596558234727745!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf98509108ce35%3A0x66bb1ec819ca23c7!2sHPWH%2BMQ8%2C%20Kwashieman!5e0!3m2!1sen!2sgh!4v1767028828113!5m2!1sen!2sgh"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -442,7 +442,7 @@ export default function ContactPage() {
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-foreground mb-2">Visit Our Office</h3>
                   <p className="text-muted-foreground text-sm">
-                    Come visit us at Jah Love Hotel in Kwashieman, Accra. We&apos;re open Monday to Saturday.
+                    Come visit us at Jah Love Junction in Kwashieman, Accra. We&apos;re open Monday to Saturday.
                   </p>
                   <motion.a
                     href="https://maps.app.goo.gl/whFBCWbGwmv9wPCc7"

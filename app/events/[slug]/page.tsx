@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
-import { Calendar, MapPin, Clock, Users, DollarSign, CheckCircle, Loader2, ArrowLeft, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Mail } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Calendar, MapPin, Clock, Users, DollarSign, CheckCircle, Loader2, ArrowLeft, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Mail, X, User, Phone, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface Event {
   id: string;
@@ -36,12 +37,23 @@ interface Event {
 
 export default function EventDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params?.slug as string;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    participants: 1,
+    fullName: '',
+    email: '',
+    phone: '',
+    specialRequests: '',
+    paymentOption: 'PAY_LATER' as 'PAY_NOW' | 'PAY_LATER',
+  });
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareTitle = event?.title || '';
@@ -94,6 +106,79 @@ export default function EventDetailPage() {
       setLoading(false);
     }
   };
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!bookingData.fullName || !bookingData.email || !bookingData.phone) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (!event) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId: event.id,
+          participants: bookingData.participants,
+          fullName: bookingData.fullName,
+          email: bookingData.email,
+          phone: bookingData.phone,
+          specialRequests: bookingData.specialRequests,
+          paymentOption: bookingData.paymentOption,
+          totalAmount: event.price ? event.price * bookingData.participants : 0,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to create booking');
+        return;
+      }
+
+      toast.success('Booking created successfully!');
+      setShowBookingModal(false);
+
+      // Reset form
+      setBookingData({
+        participants: 1,
+        fullName: '',
+        email: '',
+        phone: '',
+        specialRequests: '',
+        paymentOption: 'PAY_LATER',
+      });
+
+      // Redirect based on payment option
+      if (bookingData.paymentOption === 'PAY_NOW') {
+        toast.info('Redirecting to payment...');
+        // TODO: Implement payment gateway redirection
+        setTimeout(() => {
+          router.push(`/profile/bookings?booking=${data.booking.id}`);
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          router.push('/profile/bookings');
+        }, 1500);
+      }
+
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const totalPrice = event?.price ? event.price * bookingData.participants : 0;
 
   if (loading) {
     return (
@@ -424,7 +509,10 @@ export default function EventDetailPage() {
 
                   {/* Book Now Button */}
                   {(event.status === 'UPCOMING' || event.status === 'ONGOING') && (
-                    <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setShowBookingModal(true)}
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                    >
                       <CheckCircle className="w-5 h-5" />
                       Book Now
                     </button>
@@ -440,6 +528,189 @@ export default function EventDetailPage() {
             </div>
           </div>
         </section>
+
+        {/* Booking Modal */}
+        <AnimatePresence>
+          {showBookingModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-foreground">Book {event?.title}</h2>
+                  <button
+                    onClick={() => setShowBookingModal(false)}
+                    className="p-2 hover:bg-muted rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-foreground" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
+                  {/* Participants */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                      Number of Participants *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={event?.maxParticipants ? event.maxParticipants - event.currentParticipants : 100}
+                      value={bookingData.participants}
+                      onChange={(e) => setBookingData({ ...bookingData, participants: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      required
+                    />
+                    {event?.price && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Total: ${totalPrice.toFixed(2)} ({bookingData.participants} × ${event.price})
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={bookingData.fullName}
+                        onChange={(e) => setBookingData({ ...bookingData, fullName: e.target.value })}
+                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="John Doe"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                      Email Address *
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="email"
+                        value={bookingData.email}
+                        onChange={(e) => setBookingData({ ...bookingData, email: e.target.value })}
+                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="john@example.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                      Phone Number *
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="tel"
+                        value={bookingData.phone}
+                        onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
+                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="+1 234 567 8900"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Special Requests */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                      Special Requests (Optional)
+                    </label>
+                    <div className="relative">
+                      <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                      <textarea
+                        value={bookingData.specialRequests}
+                        onChange={(e) => setBookingData({ ...bookingData, specialRequests: e.target.value })}
+                        rows={4}
+                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                        placeholder="Any dietary restrictions, accessibility needs, etc."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Payment Option */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-3">
+                      Payment Option *
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_NOW' })}
+                        className={`p-4 border-2 rounded-xl transition-all ${
+                          bookingData.paymentOption === 'PAY_NOW'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <DollarSign className="w-6 h-6 mx-auto mb-2" />
+                        <div className="font-semibold">Pay Now</div>
+                        <div className="text-xs text-muted-foreground mt-1">Secure payment</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_LATER' })}
+                        className={`p-4 border-2 rounded-xl transition-all ${
+                          bookingData.paymentOption === 'PAY_LATER'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <Clock className="w-6 h-6 mx-auto mb-2" />
+                        <div className="font-semibold">Pay Later</div>
+                        <div className="text-xs text-muted-foreground mt-1">Reserve now</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowBookingModal(false)}
+                      className="flex-1 px-6 py-3 border-2 border-border rounded-xl font-semibold text-foreground hover:bg-muted transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          {bookingData.paymentOption === 'PAY_NOW' ? 'Proceed to Payment' : 'Confirm Booking'}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
       <Footer />
     </>

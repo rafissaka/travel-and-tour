@@ -1,73 +1,71 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Carousel, { CarouselItem } from './Carousel';
 import { Star, Quote } from 'lucide-react';
 
-const testimonials: CarouselItem[] = [
-  {
-    id: 1,
-    title: 'Sarah Johnson',
-    description: 'The Cape Coast tour was absolutely incredible! Our guide was knowledgeable and the experience at Elmina Castle was deeply moving. God First Education made everything seamless from booking to the actual tour. Highly recommend!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 2,
-    title: 'Michael Osei',
-    description: 'I enrolled my daughter through God First Education for university admission. The process was smooth, and they provided excellent support with visa applications and accommodation. She\'s now thriving at the University of Ghana!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 3,
-    title: 'Emily Chen',
-    description: 'The Mole Safari exceeded all expectations! Seeing elephants in their natural habitat was breathtaking. The combination of wildlife and the Wli Waterfalls made this a trip of a lifetime. Thank you God First Education!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 4,
-    title: 'Kwame Mensah',
-    description: 'God First Education organized our school\'s field trip to Kakum National Park. The canopy walk was thrilling for our students, and the educational value was immense. Professional service throughout!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 5,
-    title: 'Jessica Williams',
-    description: 'The Golden Heritage Tour in Kumasi was a cultural immersion like no other. Learning about Ashanti traditions, witnessing Kente weaving, and attending the durbar was unforgettable. Five stars!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 6,
-    title: 'David Agyeman',
-    description: 'As an international student, God First Education helped me navigate the admission process seamlessly. They handled everything from applications to accommodation, making my transition to Ghana smooth and stress-free.',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 7,
-    title: 'Aisha Mohammed',
-    description: 'The Volta Cultural Immersion was an eye-opening experience. Living with local families, learning traditional drumming, and participating in cultural ceremonies gave me a deeper appreciation for Ghanaian culture.',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 8,
-    title: 'Robert Thompson',
-    description: 'Beaches & Coastal Tour was exactly what we needed! Busua Beach was pristine, surfing lessons were fun, and the beachside seafood was delicious. God First Education thinks of everything!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 9,
-    title: 'Grace Boateng',
-    description: 'The Education Fair organized by God First was incredibly helpful. I met representatives from multiple universities and got on-site admission! The scholarship guidance was invaluable.',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  },
-  {
-    id: 10,
-    title: 'James Anderson',
-    description: 'Nzulezu Stilt Village tour was unique and fascinating. The canoe ride through mangroves and experiencing life on water was unlike anything I\'ve seen. Exceptional tour organization!',
-    icon: <Quote className="h-[16px] w-[16px] text-secondary" />
-  }
-];
+interface Testimonial {
+  id: string;
+  name: string;
+  title: string | null;
+  content: string;
+  rating: number | null;
+  avatarUrl: string | null;
+  isFeatured: boolean;
+}
 
 export function Testimonials() {
+  const [testimonials, setTestimonials] = useState<CarouselItem[]>([]);
+  const [stats, setStats] = useState({
+    averageRating: 4.9,
+    totalReviews: 0,
+    happyTravelers: 1000,
+    studentsPlaced: 250,
+  });
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      const response = await fetch('/api/testimonials');
+      if (response.ok) {
+        const data: Testimonial[] = await response.json();
+        
+        // Calculate stats from real testimonials
+        const totalReviews = data.length;
+        const ratingsSum = data.reduce((sum, t) => sum + (t.rating || 0), 0);
+        const averageRating = totalReviews > 0 ? (ratingsSum / totalReviews).toFixed(1) : '4.9';
+        
+        setStats({
+          averageRating: parseFloat(averageRating as string),
+          totalReviews,
+          happyTravelers: 1000,
+          studentsPlaced: 250,
+        });
+
+        // Convert to carousel format
+        const carouselItems: CarouselItem[] = data.map((t, index) => ({
+          id: index + 1,
+          title: t.name + (t.title ? ` - ${t.title}` : ''),
+          description: t.content,
+          icon: <Quote className="h-[16px] w-[16px] text-secondary" />,
+          image: t.avatarUrl || undefined,
+        }));
+
+        setTestimonials(carouselItems);
+      }
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+      // Keep default empty state
+    }
+  };
+
+  // Show section even if no testimonials yet (for demo purposes)
+  const hasTestimonials = testimonials.length > 0;
+
   return (
     <section className="py-20 bg-muted dark:bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,49 +95,66 @@ export function Testimonials() {
         >
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-5xl font-bold text-primary">4.9</span>
+              <span className="text-5xl font-bold text-primary">{stats.averageRating}</span>
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-6 h-6 fill-secondary text-secondary" />
                 ))}
               </div>
             </div>
-            <p className="text-muted-foreground">Based on 500+ reviews</p>
+            <p className="text-muted-foreground">
+              Based on {stats.totalReviews > 0 ? stats.totalReviews : '500+'} reviews
+            </p>
           </div>
 
           <div className="h-16 w-px bg-border hidden md:block" />
 
           <div className="flex flex-col items-center">
-            <div className="text-5xl font-bold text-primary mb-2">1000+</div>
+            <div className="text-5xl font-bold text-primary mb-2">{stats.happyTravelers}+</div>
             <p className="text-muted-foreground">Happy Travelers</p>
           </div>
 
           <div className="h-16 w-px bg-border hidden md:block" />
 
           <div className="flex flex-col items-center">
-            <div className="text-5xl font-bold text-primary mb-2">250+</div>
+            <div className="text-5xl font-bold text-primary mb-2">{stats.studentsPlaced}+</div>
             <p className="text-muted-foreground">Students Placed</p>
           </div>
         </motion.div>
 
         {/* Carousel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex justify-center"
-        >
-          <Carousel
-            items={testimonials}
-            baseWidth={500}
-            autoplay={true}
-            autoplayDelay={5000}
-            pauseOnHover={true}
-            loop={true}
-            round={false}
-          />
-        </motion.div>
+        {hasTestimonials ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex justify-center"
+          >
+            <Carousel
+              items={testimonials}
+              baseWidth={500}
+              autoplay={true}
+              autoplayDelay={5000}
+              pauseOnHover={true}
+              loop={true}
+              round={false}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center py-12"
+          >
+            <Quote className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <p className="text-lg text-muted-foreground mb-4">
+              No testimonials yet. Be the first to share your experience!
+            </p>
+          </motion.div>
+        )}
 
         {/* Trust Badges */}
         <motion.div

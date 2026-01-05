@@ -7,7 +7,6 @@ import {
   User,
   Settings,
   BookOpen,
-  Heart,
   History,
   Menu,
   X,
@@ -22,19 +21,28 @@ import {
   Shield,
   Star,
   Users,
+  FileText,
+  GraduationCap,
+  Plane,
+  MessageSquare,
 } from 'lucide-react';
 
 const sidebarLinks = [
-  { name: 'Dashboard', href: '/profile', icon: LayoutDashboard, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Dashboard', href: '/profile', icon: Home, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
   { name: 'Gallery', href: '/profile/gallery', icon: Image, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Events', href: '/profile/events', icon: Calendar, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Appointments', href: '/profile/appointments', icon: CalendarCheck, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Bookings', href: '/profile/bookings', icon: BookOpen, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Chats', href: '/profile/chats', icon: MessageSquare, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Services', href: '/profile/services', icon: Briefcase, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Programs', href: '/profile/programs', icon: GraduationCap, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Clients', href: '/profile/clients', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Admins', href: '/profile/admins', icon: Shield, roles: ['SUPER_ADMIN'] },
-  { name: 'Testimonials', href: '/profile/testimonials', icon: Star, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Testimonials', href: '/admin/testimonials', icon: Star, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'My Bookings', href: '/profile/bookings', icon: BookOpen, roles: ['USER'] },
-  { name: 'Wishlist', href: '/profile/wishlist', icon: Heart, roles: ['USER'] },
+  { name: 'Applications', href: '/profile/applications', icon: FileText, roles: ['USER'] },
+  { name: 'Reservations', href: '/profile/reservations', icon: Plane, roles: ['USER'] },
+  { name: 'Testimonials', href: '/profile/testimonials', icon: Star, roles: ['USER'] },
   { name: 'Activity History', href: '/profile/history', icon: History, roles: ['USER'] },
   { name: 'Settings', href: '/profile/settings', icon: Settings, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
 ];
@@ -85,7 +93,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-xl font-bold text-foreground">Home</h1>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
@@ -101,71 +109,81 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
-        {/* Logo & Toggle */}
-        <div className="h-24 flex items-center justify-between px-4 border-b border-border">
-          {!isCollapsed && (
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-                <Home className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-bold text-lg text-foreground">Dashboard</span>
-            </Link>
-          )}
-          {isCollapsed && (
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mx-auto">
-              <Home className="w-6 h-6 text-white" />
-            </div>
-          )}
-        </div>
-
-        {/* Collapse Toggle Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-28 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-          )}
-        </button>
-
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {filteredLinks.map((link) => {
-            const isActive = pathname === link.href;
-            const Icon = link.icon;
-
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg'
-                    : 'text-foreground hover:bg-muted'
-                } ${isCollapsed ? 'justify-center' : ''}`}
-                title={isCollapsed ? link.name : ''}
-              >
-                <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'} shrink-0`} />
-                {!isCollapsed && <span className="font-medium">{link.name}</span>}
+        <div className="h-full flex flex-col">
+          {/* Logo & Toggle */}
+          <div className="h-24 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
+            {!isCollapsed && (
+              <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                  <Home className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-bold text-lg text-foreground">Home</span>
               </Link>
-            );
-          })}
-        </nav>
-
-        {/* Back to Home Link */}
-        {!isCollapsed && (
-          <div className="absolute bottom-4 left-4 right-4">
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
-            >
-              <Home className="w-5 h-5 shrink-0" />
-              <span className="font-medium">Back to Home</span>
-            </Link>
+            )}
+            {isCollapsed && (
+              <Link href="/" className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mx-auto hover:opacity-80 transition-opacity">
+                <Home className="w-6 h-6 text-white" />
+              </Link>
+            )}
           </div>
-        )}
+
+          {/* Collapse Toggle Button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-28 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+
+          {/* Navigation - Scrollable */}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {filteredLinks.map((link) => {
+              const isActive = pathname === link.href;
+              const Icon = link.icon;
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg'
+                      : 'text-foreground hover:bg-muted'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+                  title={isCollapsed ? link.name : ''}
+                >
+                  <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'} shrink-0`} />
+                  {!isCollapsed && <span className="font-medium">{link.name}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Logout Button - Fixed at bottom */}
+          <div className="p-4 border-t border-border flex-shrink-0 bg-card">
+            <button
+              onClick={async () => {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                if (response.ok) {
+                  window.location.href = '/';
+                }
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors ${
+                isCollapsed ? 'justify-center' : ''
+              }`}
+              title={isCollapsed ? 'Logout' : ''}
+            >
+              <svg className={`${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'} shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              {!isCollapsed && <span className="font-medium">Logout</span>}
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Sidebar - Mobile */}
@@ -174,50 +192,58 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Home className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-lg text-foreground">Dashboard</span>
-          </Link>
-        </div>
+        <div className="h-full flex flex-col">
+          {/* Logo */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                <Home className="w-6 h-6 text-white" />
+              </div>
+              <span className="font-bold text-lg text-foreground">Home</span>
+            </Link>
+          </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {filteredLinks.map((link) => {
-            const isActive = pathname === link.href;
-            const Icon = link.icon;
+          {/* Navigation - Scrollable */}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {filteredLinks.map((link) => {
+              const isActive = pathname === link.href;
+              const Icon = link.icon;
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg'
-                    : 'text-foreground hover:bg-muted'
-                }`}
-              >
-                <Icon className="w-5 h-5 shrink-0" />
-                <span className="font-medium">{link.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg'
+                      : 'text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="font-medium">{link.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Back to Home Link */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <Link
-            href="/"
-            onClick={() => setIsSidebarOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
-          >
-            <Home className="w-5 h-5 shrink-0" />
-            <span className="font-medium">Back to Home</span>
-          </Link>
+          {/* Logout Button - Fixed at bottom */}
+          <div className="p-4 border-t border-border flex-shrink-0 bg-card">
+            <button
+              onClick={async () => {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                if (response.ok) {
+                  window.location.href = '/';
+                }
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 

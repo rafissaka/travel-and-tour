@@ -10,50 +10,52 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Verifying your email...');
+  const [message, setMessage] = useState('Processing...');
 
   useEffect(() => {
-    const verifyEmail = async () => {
+    const handleCallback = async () => {
       const token = searchParams.get('token');
-      const type = searchParams.get('type');
 
-      if (!token) {
-        setStatus('error');
-        setMessage('Invalid verification link');
+      // Handle email verification flow (token-based)
+      if (token) {
+        setMessage('Verifying your email...');
+        try {
+          const response = await fetch('/api/auth/verify-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            setStatus('success');
+            setMessage(data.message || 'Email verified successfully!');
+
+            // Redirect to login page after 3 seconds
+            setTimeout(() => {
+              router.push('/auth/login');
+            }, 3000);
+          } else {
+            setStatus('error');
+            setMessage(data.error || 'Email verification failed');
+          }
+        } catch (error) {
+          console.error('Verification error:', error);
+          setStatus('error');
+          setMessage('An error occurred during verification');
+        }
         return;
       }
 
-      try {
-        const response = await fetch('/api/auth/verify-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setStatus('success');
-          setMessage(data.message || 'Email verified successfully!');
-
-          // Redirect to login page after 3 seconds
-          setTimeout(() => {
-            router.push('/auth/login');
-          }, 3000);
-        } else {
-          setStatus('error');
-          setMessage(data.error || 'Email verification failed');
-        }
-      } catch (error) {
-        console.error('Verification error:', error);
-        setStatus('error');
-        setMessage('An error occurred during verification');
-      }
+      // No valid parameters
+      setStatus('error');
+      setMessage('Invalid verification link');
     };
 
-    verifyEmail();
+    handleCallback();
   }, [searchParams, router]);
 
   return (
