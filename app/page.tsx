@@ -20,7 +20,13 @@ const generateFloatingElements = () =>
     delay: Math.random() * 3,
   }));
 
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/clients';
+
 export default function Home() {
+  const router = useRouter(); // Initialize router
+  const supabase = createClient(); // Initialize Supabase client
+
   // Use lazy initialization to generate elements only once
   const [floatingElements] = useState(generateFloatingElements);
   const { scrollYProgress } = useScroll();
@@ -32,6 +38,15 @@ export default function Home() {
     { icon: GraduationCap, title: 'Education', description: 'Learn & Grow' },
     { icon: Globe, title: 'Global', description: '50+ Countries' },
   ];
+
+  const handleGetStarted = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      router.push('/profile');
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <>
@@ -72,6 +87,7 @@ export default function Home() {
                 backgroundPosition: 'center',
               }}
             >
+
               {/* Overlay for readability */}
               <div className="absolute inset-0 bg-black/50" />
             </div>
@@ -173,6 +189,7 @@ export default function Home() {
                   className="pt-6"
                 >
                   <motion.button
+                    onClick={handleGetStarted}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.98 }}
                     className="bg-yellow-400 dark:bg-yellow-400 text-gray-900 dark:text-gray-900 font-bold text-lg px-10 py-5 rounded-full hover:bg-yellow-300 dark:hover:bg-yellow-300 transition-all duration-300 shadow-2xl hover:shadow-yellow-400/50 uppercase tracking-wide flex items-center gap-3"
@@ -189,20 +206,20 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </div >
 
         {/* Masonry Gallery Section */}
-        <Masonry />
+        < Masonry />
 
         {/* Events Section */}
-        <Events />
+        < Events />
 
         {/* Testimonials Section */}
-        <Testimonials />
-      </main>
+        < Testimonials />
+      </main >
 
       {/* Footer */}
-      <Footer />
+      < Footer />
     </>
   );
 }

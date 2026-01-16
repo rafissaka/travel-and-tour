@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { notifyAdminsNewReservation } from '@/lib/notifications';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser() {
@@ -122,6 +123,11 @@ export async function POST(request: NextRequest) {
         hotelPreference: hotelPreference || null,
         specialRequests: specialRequests || null,
       },
+    });
+
+    // Send notifications to admins (non-blocking)
+    notifyAdminsNewReservation(reservation.id, fullName, reservationType).catch(error => {
+      console.error('Error sending reservation notifications:', error);
     });
 
     return NextResponse.json({ reservation }, { status: 201 });

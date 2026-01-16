@@ -5,6 +5,7 @@ import { Calendar, Clock, User, Phone, MessageSquare, Plus, Loader2, CheckCircle
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Service {
   id: string;
@@ -489,9 +490,7 @@ export default function MyBookingsPage() {
 
       {/* Content based on active tab */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
+        <PageLoader text="Loading bookings..." />
       ) : activeTab === 'bookings' ? (
         bookings.length === 0 ? (
           <div className="bg-card rounded-2xl border-2 border-border p-12 text-center">

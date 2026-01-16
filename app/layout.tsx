@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { HybridChatButton } from "./components/HybridChatButton";
 import { Providers } from "./providers";
+import NotificationListener from "./components/NotificationListener";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -52,6 +53,7 @@ export default function RootLayout({
       >
         <Providers>
           <ThemeProvider>
+            <NotificationListener />
             {children}
             <HybridChatButton />
           </ThemeProvider>

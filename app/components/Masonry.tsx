@@ -62,6 +62,19 @@ export function Masonry() {
     return html.replace(/<[^>]*>/g, '');
   };
 
+  const defaultImages: MasonryItem[] = [
+    { id: '1', title: 'Students celebrating', description: null, imageUrl: 'https://images.unsplash.com/photo-1575794887726-b72453e33ced?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGFmcmljY2NhbiUyMFN0dWRlbnRzJTIwY2VsZWJyYXRpbmd8ZW58MHx8MHx8fDA%3D', category: 'Students', isFeatured: true },
+    { id: '2', title: 'Travel adventure', description: null, imageUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80', category: 'Adventure', isFeatured: false },
+    { id: '3', title: 'Cultural experience', description: null, imageUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&q=80', category: 'Culture', isFeatured: true },
+    { id: '4', title: 'Team collaboration', description: null, imageUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80', category: 'Team', isFeatured: false },
+    { id: '5', title: 'Education guidance', description: null, imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80', category: 'Education', isFeatured: false },
+    { id: '6', title: 'Travel destination', description: null, imageUrl: 'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=400&q=80', category: 'Travel', isFeatured: true },
+    { id: '7', title: 'Student success', description: null, imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&q=80', category: 'Success', isFeatured: false },
+    { id: '8', title: 'Scenic travel', description: null, imageUrl: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=80', category: 'Travel', isFeatured: false },
+  ];
+
+  const displayImages = images.length > 0 ? images : defaultImages;
+
   if (loading) {
     return (
       <section className="py-20 bg-background">
@@ -99,33 +112,6 @@ export function Masonry() {
     );
   }
 
-  if (images.length === 0) {
-    return (
-      <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Our <span className="text-primary">Journey</span> in Pictures
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explore the moments we&apos;ve shared with students, travelers, and adventurers around the world
-            </p>
-          </motion.div>
-          <div className="text-center py-12 bg-card rounded-xl border border-border">
-            <ImageIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Gallery coming soon</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,7 +133,7 @@ export function Masonry() {
 
         {/* Masonry Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
-          {images.map((item, index) => (
+          {displayImages.map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -186,9 +172,8 @@ export function Masonry() {
 
               {/* Overlay */}
               <div
-                className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 ${
-                  hoveredId === item.id ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity duration-300 ${hoveredId === item.id ? 'opacity-100' : 'opacity-0'
+                  }`}
               >
                 <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                   <p className="text-white font-semibold text-base mb-1">
@@ -207,9 +192,8 @@ export function Masonry() {
 
               {/* Border accent on hover */}
               <div
-                className={`absolute inset-0 border-4 border-primary rounded-2xl transition-opacity duration-300 ${
-                  hoveredId === item.id ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`absolute inset-0 border-4 border-primary rounded-2xl transition-opacity duration-300 ${hoveredId === item.id ? 'opacity-100' : 'opacity-0'
+                  }`}
               />
             </motion.div>
           ))}

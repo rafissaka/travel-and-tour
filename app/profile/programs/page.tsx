@@ -5,6 +5,8 @@ import { GraduationCap, Upload, X, Check, Loader2, Trash2, Eye, Plus, Calendar }
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { toast } from 'sonner';
+import RequirementsSection from './requirements-section';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Service {
   id: string;
@@ -437,6 +439,10 @@ export default function ProgramsAdminPage() {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (loading) {
+    return <PageLoader text="Loading programs..." />;
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8">
@@ -884,11 +890,7 @@ export default function ProgramsAdminPage() {
           )}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : programs.length === 0 ? (
+        {programs.length === 0 ? (
           <div className="text-center py-12">
             <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">No programs created yet</p>
@@ -992,6 +994,9 @@ export default function ProgramsAdminPage() {
                             <span className="font-medium text-foreground">{program.availableSlots}</span> slots available
                           </p>
                         )}
+
+                        {/* Requirements Section */}
+                        <RequirementsSection programId={program.id} programTitle={program.title} />
                       </div>
 
                       {/* Actions */}

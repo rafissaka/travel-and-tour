@@ -15,6 +15,8 @@ import {
   X,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Traveler {
   id: string;
@@ -277,7 +279,7 @@ export default function TravelersPage() {
     const fullName = `${deletingTraveler.firstName} ${deletingTraveler.middleName || ''} ${deletingTraveler.surname}`.replace(/\s+/g, ' ').trim();
 
     if (deleteConfirmName.trim() !== fullName) {
-      alert('The name you entered does not match. Please type the full name exactly as shown.');
+      toast.error('The name you entered does not match. Please type the full name exactly as shown.');
       return;
     }
 
@@ -287,16 +289,18 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client deleted successfully');
         setShowDeleteDialog(false);
         setDeletingTraveler(null);
         setDeleteConfirmName('');
         fetchTravelers();
       } else {
-        alert('Failed to delete traveler');
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete client');
       }
     } catch (error) {
       console.error('Error deleting traveler:', error);
-      alert('An error occurred while deleting the traveler');
+      toast.error('An error occurred while deleting the client');
     }
   };
 
@@ -368,16 +372,17 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client created successfully');
         setShowAddModal(false);
         resetForm();
         fetchTravelers();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to create traveler');
+        toast.error(error.error || 'Failed to create client');
       }
     } catch (error) {
       console.error('Error creating traveler:', error);
-      alert('An error occurred while creating the traveler');
+      toast.error('An error occurred while creating the client');
     } finally {
       setIsSubmitting(false);
     }
@@ -424,17 +429,18 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client updated successfully');
         setShowEditModal(false);
         setEditingTraveler(null);
         resetForm();
         fetchTravelers();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update traveler');
+        toast.error(error.error || 'Failed to update client');
       }
     } catch (error) {
       console.error('Error updating traveler:', error);
-      alert('An error occurred while updating the traveler');
+      toast.error('An error occurred while updating the client');
     } finally {
       setIsSubmitting(false);
     }
@@ -500,6 +506,10 @@ export default function TravelersPage() {
     // Export file
     XLSX.writeFile(workbook, filename);
   };
+
+  if (loading) {
+    return <PageLoader text="Loading users..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -716,13 +726,7 @@ export default function TravelersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading...
-                  </td>
-                </tr>
-              ) : currentTravelers.length === 0 ? (
+              {currentTravelers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                     No travelers found

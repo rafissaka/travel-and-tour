@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, Eye, EyeOff, ArrowLeft, Plane } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { saveFCMToken } from '@/lib/fcm-token';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -117,6 +118,12 @@ export default function LoginPage() {
       }
 
       toast.success('Login successful! Redirecting...');
+
+      // Save FCM token for push notifications (in background, non-blocking)
+      saveFCMToken().catch((err) => {
+        console.error('Failed to save FCM token:', err);
+        // Don't show error to user - notifications are optional
+      });
 
       // Redirect to profile page after a short delay
       setTimeout(() => {

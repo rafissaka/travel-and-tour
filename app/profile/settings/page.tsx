@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, Mail, Phone, Lock, Shield, Bell, Globe, Save, Loader2, Camera, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import PageLoader from '@/app/components/PageLoader';
 
 interface UserData {
   id: string;
@@ -143,11 +144,7 @@ export default function SettingsPage() {
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader text="Loading settings..." />;
   }
 
   return (

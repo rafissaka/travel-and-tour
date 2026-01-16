@@ -37,7 +37,7 @@ export default function Loading() {
           className="text-center mb-12"
         >
           <motion.div
-            className="inline-block mb-4"
+            className="inline-block mb-4 relative"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{
               scale: [0.8, 1.1, 1],
@@ -49,29 +49,35 @@ export default function Loading() {
             }}
           >
             <motion.img
-              src="https://static.wixstatic.com/media/10e97e_67e4d7a16b5546c2b9c8a6d5059c2b80~mv2.png/v1/crop/x_766,y_673,w_3882,h_2984/fill/w_124,h_104,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/10e97e_67e4d7a16b5546c2b9c8a6d5059c2b80~mv2.png"
-              alt="Godfirst Education and Tours"
-              className="w-20 h-auto sm:w-28 mx-auto"
+              src="/flight.png"
+              alt="GodFirst Education and Tours"
+              className="w-32 h-auto sm:w-40 mx-auto drop-shadow-2xl"
               animate={{
-                y: [0, -10, 0],
-                rotateY: [0, 360]
+                y: [0, -15, 0],
+                x: [0, 10, 0]
               }}
               transition={{
-                y: {
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                },
-                rotateY: {
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+            {/* Flight trail effect */}
+            <motion.div
+              className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+              animate={{
+                opacity: [0, 0.6, 0],
+                scaleX: [0, 1, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut'
               }}
             />
           </motion.div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            Godfirst Education & Tours
+            GodFirst Education and Tours
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Preparing your journey...

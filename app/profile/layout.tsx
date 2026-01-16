@@ -16,7 +16,6 @@ import {
   LayoutDashboard,
   Image,
   Calendar,
-  CalendarCheck,
   Briefcase,
   Shield,
   Star,
@@ -26,12 +25,14 @@ import {
   Plane,
   MessageSquare,
 } from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
+import NotificationToastListener from '../components/NotificationToastListener';
+import PageLoader from '../components/PageLoader';
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/profile', icon: Home, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
   { name: 'Gallery', href: '/profile/gallery', icon: Image, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Events', href: '/profile/events', icon: Calendar, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'Appointments', href: '/profile/appointments', icon: CalendarCheck, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Bookings', href: '/profile/bookings', icon: BookOpen, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Chats', href: '/profile/chats', icon: MessageSquare, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'Services', href: '/profile/services', icon: Briefcase, roles: ['ADMIN', 'SUPER_ADMIN'] },
@@ -78,28 +79,29 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
   // Show loading state while fetching role to prevent flash of wrong sidebar
   if (isLoadingRole) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader text="Loading profile..." fullScreen />;
   }
+
+  const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Notification Toast Listener - Admin Only */}
+      {isAdmin && <NotificationToastListener />}
+
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">Home</h1>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
-          >
-            {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {isAdmin && <NotificationBell />}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
+            >
+              {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -255,9 +257,20 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
         />
       )}
 
+      {/* Desktop Header - Admin Only */}
+      {isAdmin && (
+        <div className={`hidden lg:block fixed top-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border transition-all duration-300 ${
+          isCollapsed ? 'left-20' : 'left-64'
+        }`}>
+          <div className="flex items-center justify-end px-6 py-4">
+            <NotificationBell />
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 pt-16 lg:pt-6 min-h-screen ${
+        className={`transition-all duration-300 pt-16 ${isAdmin ? 'lg:pt-20' : 'lg:pt-6'} min-h-screen ${
           isCollapsed ? 'lg:ml-20' : 'lg:ml-64'
         }`}
       >

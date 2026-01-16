@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { notifyAdmins } from '@/lib/notifications';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser() {
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        programId: true,
         programName: true,
         programCountry: true,
         status: true,
@@ -72,6 +74,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const isDraft = body.status === 'DRAFT' || !body.status;
+
+    // Check for duplicate application to the same program
+    if (body.programId) {
+      const existingApplication = await prisma.application.findFirst({
+        where: {
+          userId: user.id,
+          programId: body.programId,
+        },
+      });
+
+      if (existingApplication) {
+        return NextResponse.json(
+          { error: 'You have already applied to this program' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Only validate required fields if submitting (not saving as draft)
     if (!isDraft) {
@@ -210,6 +229,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Send notification if application is submitted (not draft)
+    if (application.status === 'SUBMITTED') {
+      // Notify admins about new application
+      await notifyAdmins(
+        'New Application Submitted',
+        `New application for ${application.programName} from ${user.email}`,
+        `/profile/applications`
+      );
+    }
+
     return NextResponse.json(application, { status: 201 });
   } catch (error) {
     console.error('Error creating application:', error);
@@ -264,7 +293,7 @@ export async function PATCH(request: NextRequest) {
 
     // Convert date strings to Date objects
     const dataToUpdate: any = { ...updateData };
-    
+
     // Remove fields that shouldn't be updated directly
     delete dataToUpdate.id;
     delete dataToUpdate.userId;
@@ -273,7 +302,7 @@ export async function PATCH(request: NextRequest) {
     delete dataToUpdate.user;
     delete dataToUpdate.program;
     delete dataToUpdate.programId; // programId should not be updated this way
-    
+
     const dateFields = ['programStartDate', 'programEndDate', 'dateOfBirth', 'passportIssueDate', 'passportExpiryDate', 'submittedAt'];
 
     for (const field of dateFields) {
@@ -286,6 +315,15 @@ export async function PATCH(request: NextRequest) {
       where: { id },
       data: dataToUpdate,
     });
+
+    // Send notification if draft was submitted
+    if (existing.status === 'DRAFT' && dataToUpdate.status === 'SUBMITTED') {
+      await notifyAdmins(
+        'New Application Submitted',
+        `Application for ${application.programName} has been submitted`,
+        `/profile/applications`
+      );
+    }
 
     return NextResponse.json(application);
   } catch (error) {

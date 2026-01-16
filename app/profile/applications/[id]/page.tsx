@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Edit, 
-  Save, 
-  X, 
-  Upload, 
-  Trash2, 
+import {
+  ArrowLeft,
+  Edit,
+  Save,
+  X,
+  Upload,
+  Trash2,
   Loader2,
   FileText,
   Image as ImageIcon,
@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Application {
   id: string;
@@ -290,11 +291,7 @@ export default function ApplicationDetailsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader text="Loading application..." />;
   }
 
   if (!application) {

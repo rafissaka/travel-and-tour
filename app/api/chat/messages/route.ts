@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { notifyAdminsNewChatMessage } from '@/lib/notifications';
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAsSiK-jtgY4YTq7AKH-sP-ejuQw2DFo64');
+if (!process.env.GEMINI_API_KEY) {
+  console.error('GEMINI_API_KEY is not set in environment variables');
+}
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Helper function to get authenticated user (optional for guests)
 async function getUser() {
@@ -60,9 +64,12 @@ async function generateAIResponse(userMessage: string, conversationHistory: any[
    - Visa processing for multiple countries
 
 Contact Information:
-- Phone: +233 123 456 789
+- Location: Santa Maria, Jah-Love Junction, Accra, Ghana
+- Phone: 0558735654 or 0537579919
 - Email: info@godfirstedu.com
-- Hours: Monday to Saturday
+- Working Days: Monday to Saturday
+- Working Hours: 8:00 AM - 6:00 PM (GMT)
+- Sunday: Closed
 
 Key Programs:
 - Stipendium Hungaricum: A fully-funded scholarship program to study in Hungary covering tuition, accommodation, and stipend
@@ -96,7 +103,7 @@ Please provide a helpful and professional response:`;
     console.error('Error generating AI response:', error);
     console.error('Error details:', error.message || error);
     console.error('Error stack:', error.stack);
-    return "Thank you for your message! Our team will get back to you shortly. For immediate assistance, please call us at +233 123 456 789 or email info@godfirstedu.com.";
+    return "Thank you for your message! Our team will get back to you shortly. For immediate assistance, please call us at 0558735654 or 0537579919, or email info@godfirstedu.com.";
   }
 }
 
@@ -222,6 +229,12 @@ export async function POST(request: NextRequest) {
           assignedAdminId: online ? adminId : null,
           status: online ? 'PENDING_ADMIN' : 'ACTIVE',
         },
+      });
+
+      // Notify admins about new user message (non-blocking)
+      const userName = conversation.visitorName || conversation.visitorEmail || 'User';
+      notifyAdminsNewChatMessage(conversationId, userName, message).catch(error => {
+        console.error('Error sending chat message notifications:', error);
       });
     }
 

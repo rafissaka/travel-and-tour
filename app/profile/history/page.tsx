@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Activity {
   id: string;
@@ -315,9 +316,7 @@ export default function ActivityHistoryPage() {
 
         <div className="p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
+            <PageLoader text="Loading activity history..." />
           ) : filteredActivities.length === 0 ? (
             <div className="text-center py-12">
               <ActivityIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plane, Hotel, Calendar, MapPin, Users, Mail, Phone, Plus, Send, Loader2, X, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLoader from '@/app/components/PageLoader';
 
 type ReservationType = 'FLIGHT' | 'HOTEL' | 'BOTH';
 type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
@@ -279,9 +280,7 @@ export default function ReservationsPage() {
 
         <div className="p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
+            <PageLoader text="Loading reservations..." />
           ) : reservations.length === 0 ? (
             <div className="text-center py-12">
               <Plane className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />

@@ -8,18 +8,28 @@ import { useEffect, useState } from 'react';
 export default function NotFound() {
   const router = useRouter();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [floatingElements] = useState(() => 
-    Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      size: Math.random() * 60 + 20,
-      delay: Math.random() * 2,
-      duration: Math.random() * 3 + 3,
-      x: Math.random() * 100,
-      y: Math.random() * 100
-    }))
-  );
+  const [floatingElements, setFloatingElements] = useState<Array<{
+    id: number;
+    size: number;
+    delay: number;
+    duration: number;
+    x: number;
+    y: number;
+  }>>([]);
 
   useEffect(() => {
+    // Initialize floating elements only on client side to avoid hydration mismatch
+    setFloatingElements(
+      Array.from({ length: 15 }, (_, i) => ({
+        id: i,
+        size: Math.random() * 60 + 20,
+        delay: Math.random() * 2,
+        duration: Math.random() * 3 + 3,
+        x: Math.random() * 100,
+        y: Math.random() * 100
+      }))
+    );
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth - 0.5) * 20,

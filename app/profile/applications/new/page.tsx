@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { documentConfig } from '@/lib/document-config';
 import { ArrowLeft, Save, Send, Upload, Loader2, X, FileText, Image as ImageIcon, CheckCircle, Download, GraduationCap, User, Phone, Users, BookOpen, Plane, FileCheck, Info, Menu, Plus, Trash2, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -30,10 +31,13 @@ interface Program {
 
 export default function NewApplicationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showStepsMenu, setShowStepsMenu] = useState(false);
+  const [programRequirements, setProgramRequirements] = useState<any>(null);
+  const [userDocuments, setUserDocuments] = useState<any[]>([]);
   const [documents, setDocuments] = useState<Record<string, UploadedDocument>>({});
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
@@ -130,32 +134,10 @@ export default function NewApplicationPage() {
     additionalDocuments: [],
   });
 
-  // Fetch programs on mount
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        const response = await fetch('/api/programs?active=true');
-        if (response.ok) {
-          const data = await response.json();
-          setPrograms(data);
-        }
-      } catch (error) {
-        console.error('Error fetching programs:', error);
-      }
-    };
-    fetchPrograms();
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
-  };
-
-  const handleProgramSelect = (programId: string) => {
+  // Handler for program selection
+  const handleProgramSelect = useCallback(async (programId: string) => {
     setSelectedProgramId(programId);
+    setProgramRequirements(null);
 
     if (!programId) {
       setFormData(prev => ({
@@ -171,20 +153,179 @@ export default function NewApplicationPage() {
       return;
     }
 
+    try {
+      const requirementsRes = await fetch(`/api/programs/${programId}/requirements`);
+      if (requirementsRes.ok) {
+        const reqData = await requirementsRes.json();
+        const requirements = Array.isArray(reqData) && reqData.length > 0 ? reqData[0] : null;
+        setProgramRequirements(requirements);
+        if (requirements) {
+          toast.info('Document requirements have been updated for the selected program.');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching program requirements:', error);
+      toast.error('Failed to load program requirements.');
+    }
+
     const program = programs.find(p => p.id === programId);
     if (program) {
-      setFormData(prev => ({
-        ...prev,
-        programId: program.id,
-        programName: program.title,
-        programCountry: program.country || '',
-        programUniversity: program.university || '',
-        programStartDate: program.startDate ? program.startDate.split('T')[0] : '',
-        programEndDate: program.endDate ? program.endDate.split('T')[0] : '',
-        programDuration: program.duration || '',
-      }));
+      setFormData(prev => {
+        console.log('Current form data before program select:', prev);
+        return {
+          ...prev,
+          programId: program.id,
+          programName: program.title,
+          programCountry: program.country || '',
+          programUniversity: program.university || '',
+          programStartDate: program.startDate ? program.startDate.split('T')[0] : '',
+          programEndDate: program.endDate ? program.endDate.split('T')[0] : '',
+          programDuration: program.duration || '',
+        };
+      });
       toast.success(`Program selected: ${program.title}`);
     }
+  }, [programs]);
+
+  // Fetch programs and user data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch programs
+        const programsRes = await fetch('/api/programs?active=true');
+        if (programsRes.ok) {
+          const programsData = await programsRes.json();
+          setPrograms(programsData);
+        }
+
+        // Fetch user basic info
+        const userRes = await fetch('/api/auth/me');
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          const user = userData.user;
+          console.log('User data:', user);
+
+          // Fetch user profile
+          const profileRes = await fetch('/api/profile');
+          const profileData = profileRes.ok ? await profileRes.json() : null;
+          console.log('Profile data:', profileData);
+
+          // Fetch academic profile
+          const academicRes = await fetch('/api/user/academic-profile');
+          const academicData = academicRes.ok ? await academicRes.json() : null;
+          console.log('Academic data:', academicData);
+          console.log('Education History Array:', academicData?.userEducationHistory);
+          console.log('Education History Length:', academicData?.userEducationHistory?.length);
+          console.log('User Documents:', academicData?.userDocuments);
+          console.log('Documents Count:', academicData?.userDocuments?.length);
+
+          // Auto-fill form with existing data
+          setFormData(prev => {
+            const updatedData = {
+              ...prev,
+              // Personal Information
+              firstName: user?.firstName || prev.firstName,
+              lastName: user?.lastName || prev.lastName,
+              email: user?.email || prev.email,
+              phone: user?.phone || prev.phone,
+
+              // Profile data
+              dateOfBirth: profileData?.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : prev.dateOfBirth,
+              nationality: profileData?.nationality || prev.nationality,
+
+              // Contact Information
+              address: profileData?.address || prev.address,
+              city: profileData?.city || prev.city,
+              state: profileData?.state || prev.state,
+              postalCode: profileData?.postalCode || prev.postalCode,
+              country: profileData?.country || profileData?.nationality || prev.country,
+
+              // Emergency Contact
+              emergencyContactName: profileData?.emergencyContact || prev.emergencyContactName,
+              emergencyContactPhone: profileData?.emergencyPhone || prev.emergencyContactPhone,
+
+              // Academic data
+              currentEducationLevel: academicData?.currentEducationLevel || prev.currentEducationLevel,
+              gpa: academicData?.gpa || prev.gpa,
+              schoolName: academicData?.institutionName || prev.schoolName,
+
+              // Passport
+              passportNumber: profileData?.passportNumber || prev.passportNumber,
+              passportIssueCountry: profileData?.nationality || prev.passportIssueCountry,
+            };
+
+            console.log('Auto-filled form data:', updatedData);
+            return updatedData;
+          });
+
+          // Auto-fill work experience on page load
+          if (profileData?.work_experience && Array.isArray(profileData.work_experience) && profileData.work_experience.length > 0) {
+            setWorkExperience(profileData.work_experience.map((exp: any) => ({
+              company: exp.company || '',
+              position: exp.position || '',
+              startDate: exp.startDate || '',
+              endDate: exp.endDate || '',
+              description: exp.description || '',
+              current: exp.current || false,
+            })));
+          }
+
+          // Auto-fill education history from academic profile on page load
+          if (academicData?.userEducationHistory && Array.isArray(academicData.userEducationHistory) && academicData.userEducationHistory.length > 0) {
+            setEducation(academicData.userEducationHistory.map((edu: any) => ({
+              institution: edu.institutionName || '',
+              degree: edu.educationLevel || '',
+              fieldOfStudy: edu.fieldOfStudy || '',
+              startDate: edu.startDate ? new Date(edu.startDate).toISOString().split('T')[0] : '',
+              endDate: edu.endDate ? new Date(edu.endDate).toISOString().split('T')[0] : '',
+              grade: edu.grade || '',
+            })));
+          }
+
+          if (academicData?.userDocuments) {
+            setUserDocuments(academicData.userDocuments);
+            const existingDocs: Record<string, UploadedDocument> = {};
+            for (const doc of academicData.userDocuments) {
+              if (doc.documentType) {
+                const docType = doc.documentType.toUpperCase();
+                const config = documentConfig[docType];
+                if (config) {
+                  existingDocs[docType] = {
+                    url: doc.fileUrl,
+                    publicId: '', // publicId is not available on initial load
+                    type: docType,
+                    name: doc.documentName,
+                  };
+                }
+              }
+            }
+            setDocuments(existingDocs);
+          }
+
+          toast.success('Profile data loaded! Use "Auto-fill" buttons in Step 5 for Education & Work Experience.');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load profile data');
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Auto-select program from URL parameter
+  useEffect(() => {
+    const programIdFromUrl = searchParams.get('programId');
+    if (programIdFromUrl && programs.length > 0) {
+      handleProgramSelect(programIdFromUrl);
+    }
+  }, [programs, searchParams, handleProgramSelect]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }));
   };
 
   const validatePassportPhoto = (file: File): Promise<boolean> => {
@@ -371,7 +512,10 @@ export default function NewApplicationPage() {
       case 7:
         return true; // Optional step
       case 8:
-        return !!(documents.passport && documents.photo && documents.birthCertificate && documents.transcript);
+                const requiredDocs = programRequirements?.documents?.required?.map((doc: any) => doc.type) || [];
+        const defaultRequired = ['PASSPORT_COPY', 'PASSPORT_PHOTO', 'BIRTH_CERTIFICATE', 'SHS_TRANSCRIPT', 'WASSCE_RESULT'];
+        const allRequired = [...new Set([...defaultRequired, ...requiredDocs])];
+        return allRequired.every(docKey => documents[docKey]);
       default:
         return false;
     }
@@ -973,29 +1117,65 @@ export default function NewApplicationPage() {
           <div className="space-y-4 sm:space-y-6">
             {/* Education History */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
                     <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   Education History
                 </h3>
-                <button
-                  type="button"
-                  onClick={() => setEducation([...education, { institution: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '', grade: '' }])}
-                  className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const academicRes = await fetch('/api/user/academic-profile');
+                        if (academicRes.ok) {
+                          const academicData = await academicRes.json();
+                          if (academicData?.userEducationHistory && Array.isArray(academicData.userEducationHistory) && academicData.userEducationHistory.length > 0) {
+                            setEducation(academicData.userEducationHistory.map((edu: any) => ({
+                              institution: edu.institutionName || '',
+                              degree: edu.educationLevel || '',
+                              fieldOfStudy: edu.fieldOfStudy || '',
+                              startDate: edu.startDate ? new Date(edu.startDate).toISOString().split('T')[0] : '',
+                              endDate: edu.endDate ? new Date(edu.endDate).toISOString().split('T')[0] : '',
+                              grade: edu.grade || '',
+                            })));
+                            toast.success('Education history loaded from your profile!');
+                          } else {
+                            toast.info('No education history found in your profile. Add entries in your Academic Profile first.');
+                          }
+                        }
+                      } catch (error) {
+                        toast.error('Failed to load education history');
+                      }
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all text-xs sm:text-sm font-medium"
+                  >
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>Auto-fill</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEducation([...education, { institution: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '', grade: '' }])}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-xs sm:text-sm font-medium"
+                  >
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>Add</span>
+                  </button>
+                </div>
               </div>
 
               {education.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">No education history added yet. Click "Add" to add your education background.</p>
+                <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-400">
+                    <strong>Tip:</strong> Click "Auto-fill" to load education history from your profile, or click "Add" to enter manually.
+                  </p>
+                </div>
               )}
 
               {education.map((edu, index) => (
-                <div key={index} className="mb-4 p-4 bg-muted/30 rounded-lg border border-border">
+                <div key={index} className="mb-4 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border">
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="text-sm font-semibold text-foreground">Education #{index + 1}</h4>
                     <button
@@ -1054,7 +1234,7 @@ export default function NewApplicationPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-foreground mb-1">Start Date</label>
                         <input
@@ -1065,7 +1245,7 @@ export default function NewApplicationPage() {
                             newEducation[index].startDate = e.target.value;
                             setEducation(newEducation);
                           }}
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                          className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                         />
                       </div>
                       <div>
@@ -1078,10 +1258,10 @@ export default function NewApplicationPage() {
                             newEducation[index].endDate = e.target.value;
                             setEducation(newEducation);
                           }}
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                          className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                         />
                       </div>
-                      <div>
+                      <div className="col-span-2 sm:col-span-1">
                         <label className="block text-xs font-semibold text-foreground mb-1">Grade/GPA</label>
                         <input
                           type="text"
@@ -1091,7 +1271,7 @@ export default function NewApplicationPage() {
                             newEducation[index].grade = e.target.value;
                             setEducation(newEducation);
                           }}
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                          className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                           placeholder="3.5/4.0 or A"
                         />
                       </div>
@@ -1103,29 +1283,65 @@ export default function NewApplicationPage() {
 
             {/* Work Experience */}
             <div className="mt-6 pt-6 border-t border-border">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center flex-shrink-0">
                     <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
                   </div>
                   Work Experience
                 </h3>
-                <button
-                  type="button"
-                  onClick={() => setWorkExperience([...workExperience, { company: '', position: '', startDate: '', endDate: '', description: '', current: false }])}
-                  className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const profileRes = await fetch('/api/profile');
+                        if (profileRes.ok) {
+                          const profileData = await profileRes.json();
+                          if (profileData?.work_experience && Array.isArray(profileData.work_experience) && profileData.work_experience.length > 0) {
+                            setWorkExperience(profileData.work_experience.map((exp: any) => ({
+                              company: exp.company || '',
+                              position: exp.position || '',
+                              startDate: exp.startDate || '',
+                              endDate: exp.endDate || '',
+                              description: exp.description || '',
+                              current: exp.current || false,
+                            })));
+                            toast.success('Work experience loaded from your profile!');
+                          } else {
+                            toast.info('No work experience found in your profile. Add entries in your Complete Profile first.');
+                          }
+                        }
+                      } catch (error) {
+                        toast.error('Failed to load work experience');
+                      }
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all text-xs sm:text-sm font-medium"
+                  >
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>Auto-fill</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWorkExperience([...workExperience, { company: '', position: '', startDate: '', endDate: '', description: '', current: false }])}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-xs sm:text-sm font-medium"
+                  >
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>Add</span>
+                  </button>
+                </div>
               </div>
 
               {workExperience.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">No work experience added yet. Click "Add" to add your work history.</p>
+                <div className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-400">
+                    <strong>Tip:</strong> Click "Auto-fill" to load work experience from your profile, or click "Add" to enter manually.
+                  </p>
+                </div>
               )}
 
               {workExperience.map((work, index) => (
-                <div key={index} className="mb-4 p-4 bg-muted/30 rounded-lg border border-border">
+                <div key={index} className="mb-4 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border">
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="text-sm font-semibold text-foreground">Experience #{index + 1}</h4>
                     <button
@@ -1169,7 +1385,7 @@ export default function NewApplicationPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-foreground mb-1">Start Date</label>
                         <input
@@ -1180,7 +1396,7 @@ export default function NewApplicationPage() {
                             newWorkExperience[index].startDate = e.target.value;
                             setWorkExperience(newWorkExperience);
                           }}
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                          className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                         />
                       </div>
                       <div>
@@ -1194,7 +1410,7 @@ export default function NewApplicationPage() {
                             setWorkExperience(newWorkExperience);
                           }}
                           disabled={work.current}
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+                          className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
                         />
                       </div>
                     </div>
@@ -1481,63 +1697,54 @@ export default function NewApplicationPage() {
           );
         };
 
+        const requiredDocs = programRequirements?.documents?.required?.map((doc: any) => doc.type) || [];
+        const optionalDocs = programRequirements?.documents?.optional?.map((doc: any) => doc.type) || [];
+
+        const defaultRequired = ['PASSPORT_COPY', 'PASSPORT_PHOTO', 'BIRTH_CERTIFICATE', 'SHS_TRANSCRIPT', 'WASSCE_RESULT'];
+        const allRequired = [...new Set([...defaultRequired, ...requiredDocs])];
+
+        const allDocKeys = [...new Set([...Object.keys(documentConfig), ...requiredDocs, ...optionalDocs])];
+
         return (
           <div className="space-y-4 sm:space-y-6">
-            <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <h3 className="text-xs sm:text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">📄 Document Requirements</h3>
-              <ul className="text-[10px] sm:text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
-                <li>Clear and legible documents</li>
-                <li>PDF, JPG, PNG (Max 10MB)</li>
-                <li><span className="text-red-500 font-bold">*</span> = Required</li>
-              </ul>
-            </div>
+            {programRequirements ? (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-400">
+                  <span className="font-bold">Program Requirements:</span> These are tailored to your selected program.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                  <span className="font-bold">Standard Documents:</span> No program selected. Showing default required documents.
+                </p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {allDocKeys.map(key => {
+                const config = documentConfig[key as keyof typeof documentConfig];
+                if (!config) return null;
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <DocumentUploadCard
-                title="Passport Copy"
-                description="Bio-data page"
-                documentType="passport"
-                fieldName="passportCopyUrl"
-                required
-              />
-
-              <DocumentUploadCard
-                title="Passport Photo"
-                description="Recent passport photo"
-                documentType="photo"
-                fieldName="photoUrl"
-                required
-              />
-
-              <DocumentUploadCard
-                title="Birth Certificate"
-                description="Official certificate"
-                documentType="birthCertificate"
-                fieldName="birthCertificateUrl"
-                required
-              />
-
-              <DocumentUploadCard
-                title="Transcripts"
-                description="Academic transcripts"
-                documentType="transcript"
-                fieldName="transcriptUrl"
-                required
-              />
-
-              <DocumentUploadCard
-                title="WASSCE Results"
-                description="Certificate results"
-                documentType="wassce"
-                fieldName="wassceUrl"
-              />
-
-              <DocumentUploadCard
-                title="Medical Results"
-                description="Medical certificate"
-                documentType="medicalResults"
-                fieldName="medicalResultsUrl"
-              />
+                const isRequired = allRequired.includes(key);
+                
+                if (!programRequirements && !isRequired && !optionalDocs.includes(key)) {
+                  // If no program is selected, only show default required and explicitly optional ones.
+                  // This avoids showing all possible documents from the config.
+                  const isDefaultOptional = !defaultRequired.includes(key);
+                  if(isDefaultOptional) return null;
+                }
+                
+                return (
+                  <DocumentUploadCard
+                    key={key}
+                    title={config.title}
+                    description={config.description}
+                    documentType={key}
+                    fieldName={config.fieldName}
+                    required={isRequired}
+                  />
+                );
+              })}
             </div>
           </div>
         );
@@ -1548,8 +1755,8 @@ export default function NewApplicationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 sm:pb-8">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+    <div className="min-h-screen bg-background pb-24 sm:pb-8 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-8">
           <Link href="/profile/applications">
@@ -1572,7 +1779,7 @@ export default function NewApplicationPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex gap-4 sm:gap-8">
+        <div className="flex gap-4 sm:gap-6 lg:gap-8">
           {/* Desktop Sidebar - Vertical Steps */}
           <div className="w-64 xl:w-80 flex-shrink-0 hidden lg:block sticky top-4 sm:top-8 self-start">
             <div className="bg-card rounded-xl lg:rounded-2xl border-2 border-border p-4 sm:p-6 shadow-lg">
@@ -1739,8 +1946,8 @@ export default function NewApplicationPage() {
           </AnimatePresence>
 
           {/* Right Content Area */}
-          <div className="flex-1 min-w-0">
-            <div className="bg-card rounded-xl lg:rounded-2xl border-2 border-border p-4 sm:p-6 lg:p-8 shadow-lg">
+          <div className="flex-1 min-w-0 w-full">
+            <div className="bg-card rounded-xl lg:rounded-2xl border-2 border-border p-4 sm:p-6 lg:p-8 shadow-lg overflow-hidden">
               {/* Mobile Step Indicator */}
               <div className="lg:hidden mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border">
                 <div className="flex items-center gap-3 mb-3">

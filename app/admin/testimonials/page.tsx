@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Star, CheckCircle, XCircle, Clock, Trash2, Eye, Loader2, Award, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Testimonial {
   id: string;
@@ -267,9 +268,7 @@ export default function AdminTestimonialsPage() {
 
       {/* Testimonials List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
+        <PageLoader text="Loading testimonials..." />
       ) : filteredTestimonials.length === 0 ? (
         <div className="bg-card rounded-2xl border-2 border-border p-12 text-center">
           <Star className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

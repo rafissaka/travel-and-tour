@@ -5,6 +5,7 @@ import { Star, Send, Loader2, CheckCircle, XCircle, Clock, Trash2, Edit2, AlertC
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Testimonial {
   id: string;
@@ -335,9 +336,7 @@ export default function MyTestimonialsPage() {
 
       {/* My Testimonials List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
+        <PageLoader text="Loading testimonials..." />
       ) : testimonials.length === 0 ? (
         <div className="bg-card rounded-2xl border-2 border-border p-12 text-center">
           <Send className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

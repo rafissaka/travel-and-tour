@@ -27,6 +27,7 @@ import {
   User as UserIcon,
   LogOut,
 } from 'lucide-react';
+// import NotificationBell from './NotificationBell';
 
 const navLinks = [
   { name: 'Home', href: '/', icon: Home },
@@ -283,15 +284,18 @@ export function Navbar() {
             {!isLoadingUser && (
               <div className="hidden lg:flex items-center space-x-2">
                 {user ? (
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 group"
-                  >
-                    <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
-                      {user.firstName?.[0]}{user.lastName?.[0]}
-                    </div>
-                    <span className="max-w-[120px] truncate">{user.firstName} {user.lastName}</span>
-                  </Link>
+                  <>
+                    {/* <NotificationBell /> */}
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 group"
+                    >
+                      <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
+                        {user.firstName?.[0]}{user.lastName?.[0]}
+                      </div>
+                      <span className="max-w-[120px] truncate">{user.firstName} {user.lastName}</span>
+                    </Link>
+                  </>
                 ) : (
                   <>
                     <Link

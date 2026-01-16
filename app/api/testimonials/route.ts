@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { notifyAdminsNewTestimonial } from '@/lib/notifications';
 
 // GET - Fetch testimonials (public can see approved, admins can see all)
 export async function GET(request: NextRequest) {
@@ -141,6 +142,12 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    });
+
+    // Send notifications to admins (non-blocking)
+    const userName = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim() || 'Anonymous';
+    notifyAdminsNewTestimonial(testimonial.id, userName).catch(error => {
+      console.error('Error sending testimonial notifications:', error);
     });
 
     return NextResponse.json(testimonial, { status: 201 });

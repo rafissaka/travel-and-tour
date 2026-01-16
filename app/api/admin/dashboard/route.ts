@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
       admins: await prisma.user.count({ where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } } }),
       users: await prisma.user.count({ where: { role: 'USER' } }),
       active: await prisma.user.count({ where: { isActive: true } }),
-      verified: await prisma.user.count({ where: { emailVerified: { not: null as any } } }),
+      verified: await prisma.user.count({ where: { emailVerified: true } }),
     };
 
     // Fetch travelers stats

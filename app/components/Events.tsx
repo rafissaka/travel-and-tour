@@ -32,7 +32,9 @@ export function Events() {
       const response = await fetch('/api/events');
       if (response.ok) {
         const data = await response.json();
-        setEvents(data);
+        if (data && data.length > 0) {
+          setEvents(data);
+        }
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -41,13 +43,13 @@ export function Events() {
     }
   };
 
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = events.length > 0 ? events.filter(event => {
     if (filter === 'all') return true;
     if (filter === 'ENDED') return event.status === 'ENDED';
     return event.status === 'UPCOMING' || event.status === 'ONGOING';
-  });
+  }) : [];
 
-  const legacyEvents: Event[] = loading ? [] : [
+  const legacyEvents: Event[] = [
   {
     id: '1',
     title: 'Accra - Cape Coast Tour',
@@ -230,8 +232,15 @@ export function Events() {
   },
 ];
 
-  // Transform events to InfiniteMenu format
-  const allEvents = filteredEvents.length > 0 ? filteredEvents : [];
+  const filteredLegacyEvents = legacyEvents.filter(event => {
+    if (filter === 'all') return true;
+    if (filter === 'ENDED') return event.status === 'ENDED';
+    return event.status === 'UPCOMING' || event.status === 'ONGOING';
+  });
+
+  // Use real events if available, otherwise use legacy events
+  const displayEvents = events.length > 0 ? filteredEvents : filteredLegacyEvents;
+  const allEvents = displayEvents;
   const menuItems = allEvents.map(event => ({
     image: event.imageUrl || 'https://picsum.photos/seed/event/800/800',
     link: `/events/${event.slug}`,

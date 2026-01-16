@@ -15,6 +15,8 @@ import {
   X,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Traveler {
   id: string;
@@ -90,6 +92,7 @@ export default function TravelersPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingTraveler, setDeletingTraveler] = useState<Traveler | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [formData, setFormData] = useState({
@@ -152,9 +155,12 @@ export default function TravelersPage() {
       if (response.ok) {
         const data = await response.json();
         setTravelers(data);
+      } else {
+        toast.error('Failed to fetch clients');
       }
     } catch (error) {
       console.error('Error fetching travelers:', error);
+      toast.error('An error occurred while fetching clients');
     } finally {
       setLoading(false);
     }
@@ -268,6 +274,7 @@ export default function TravelersPage() {
     setDeletingTraveler(traveler);
     setShowDeleteDialog(true);
     setDeleteConfirmName('');
+    setIsDeleting(false);
     handleCloseDropdown();
   };
 
@@ -277,9 +284,11 @@ export default function TravelersPage() {
     const fullName = `${deletingTraveler.firstName} ${deletingTraveler.middleName || ''} ${deletingTraveler.surname}`.replace(/\s+/g, ' ').trim();
 
     if (deleteConfirmName.trim() !== fullName) {
-      alert('The name you entered does not match. Please type the full name exactly as shown.');
+      toast.error('The name you entered does not match. Please type the full name exactly as shown.');
       return;
     }
+
+    setIsDeleting(true);
 
     try {
       const response = await fetch(`/api/travelers/${deletingTraveler.id}`, {
@@ -287,16 +296,20 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client deleted successfully');
         setShowDeleteDialog(false);
         setDeletingTraveler(null);
         setDeleteConfirmName('');
         fetchTravelers();
       } else {
-        alert('Failed to delete traveler');
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete client');
       }
     } catch (error) {
       console.error('Error deleting traveler:', error);
-      alert('An error occurred while deleting the traveler');
+      toast.error('An error occurred while deleting the client');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -368,16 +381,17 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client created successfully');
         setShowAddModal(false);
         resetForm();
         fetchTravelers();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to create traveler');
+        toast.error(error.error || 'Failed to create client');
       }
     } catch (error) {
       console.error('Error creating traveler:', error);
-      alert('An error occurred while creating the traveler');
+      toast.error('An error occurred while creating the client');
     } finally {
       setIsSubmitting(false);
     }
@@ -424,17 +438,18 @@ export default function TravelersPage() {
       });
 
       if (response.ok) {
+        toast.success('Client updated successfully');
         setShowEditModal(false);
         setEditingTraveler(null);
         resetForm();
         fetchTravelers();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update traveler');
+        toast.error(error.error || 'Failed to update client');
       }
     } catch (error) {
       console.error('Error updating traveler:', error);
-      alert('An error occurred while updating the traveler');
+      toast.error('An error occurred while updating the client');
     } finally {
       setIsSubmitting(false);
     }
@@ -499,7 +514,12 @@ export default function TravelersPage() {
 
     // Export file
     XLSX.writeFile(workbook, filename);
+    toast.success(`Exported ${filteredTravelers.length} clients to Excel`);
   };
+
+  if (loading) {
+    return <PageLoader text="Loading clients..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -716,13 +736,7 @@ export default function TravelersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading...
-                  </td>
-                </tr>
-              ) : currentTravelers.length === 0 ? (
+              {currentTravelers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                     No travelers found
@@ -1783,17 +1797,19 @@ export default function TravelersPage() {
                   setShowDeleteDialog(false);
                   setDeletingTraveler(null);
                   setDeleteConfirmName('');
+                  setIsDeleting(false);
                 }}
-                className="px-4 py-2 text-foreground hover:bg-muted rounded-lg transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 text-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                disabled={deleteConfirmName.trim() !== `${deletingTraveler.firstName} ${deletingTraveler.middleName || ''} ${deletingTraveler.surname}`.replace(/\s+/g, ' ').trim()}
+                disabled={isDeleting || deleteConfirmName.trim() !== `${deletingTraveler.firstName} ${deletingTraveler.middleName || ''} ${deletingTraveler.surname}`.replace(/\s+/g, ' ').trim()}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Delete Permanently
+                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
               </button>
             </div>
           </motion.div>

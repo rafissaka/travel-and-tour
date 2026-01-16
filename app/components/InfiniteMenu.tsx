@@ -1,3 +1,5 @@
+'use client';
+
 import { FC, useRef, useState, useEffect, MutableRefObject } from 'react';
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
 
@@ -732,8 +734,8 @@ class InfiniteGridMenu {
   }
 
   public resize(): void {
-    const needsResize = resizeCanvasToDisplaySize(this.canvas);
     if (!this.gl) return;
+    const needsResize = resizeCanvasToDisplaySize(this.canvas);
     if (needsResize) {
       this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
     }
@@ -741,6 +743,8 @@ class InfiniteGridMenu {
   }
 
   public run(time = 0): void {
+    if (!this.gl) return; // Don't run animation loop if WebGL isn't initialized
+    
     this._deltaTime = Math.min(32, time - this._time);
     this._time = time;
     this._deltaFrames = this._deltaTime / this.TARGET_FRAME_DURATION;
@@ -753,12 +757,20 @@ class InfiniteGridMenu {
   }
 
   private init(onInit?: InitCallback): void {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+      console.warn('InfiniteMenu: Cannot initialize in non-browser environment');
+      return;
+    }
+
     const gl = this.canvas.getContext('webgl2', {
       antialias: true,
       alpha: false
     });
     if (!gl) {
-      throw new Error('No WebGL 2 context!');
+      console.error('WebGL 2 is not supported in this browser. InfiniteMenu requires WebGL 2.');
+      // Instead of throwing, we'll just return early
+      return;
     }
     this.gl = gl;
 
@@ -1066,8 +1078,17 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null) as MutableRefObject<HTMLCanvasElement | null>;
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
   const [isMoving, setIsMoving] = useState<boolean>(false);
+  const [webglSupported, setWebglSupported] = useState<boolean>(true);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    // Mark as mounted (client-side only)
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     const canvas = canvasRef.current;
     let sketch: InfiniteGridMenu | null = null;
 
@@ -1078,9 +1099,23 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
     };
 
     if (canvas) {
-      sketch = new InfiniteGridMenu(canvas, items.length ? items : defaultItems, handleActiveItem, setIsMoving, sk =>
-        sk.run()
-      );
+      // Check WebGL 2 support before initializing
+      const testGl = canvas.getContext('webgl2');
+      if (!testGl) {
+        console.warn('WebGL 2 is not supported. Falling back to alternative view.');
+        setWebglSupported(false);
+        return;
+      }
+
+      try {
+        sketch = new InfiniteGridMenu(canvas, items.length ? items : defaultItems, handleActiveItem, setIsMoving, sk =>
+          sk.run()
+        );
+      } catch (error) {
+        console.error('Failed to initialize InfiniteGridMenu:', error);
+        setWebglSupported(false);
+        return;
+      }
     }
 
     const handleResize = () => {
@@ -1095,7 +1130,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [items]);
+  }, [items, isMounted]);
 
   const handleButtonClick = () => {
     if (!activeItem?.link) return;
@@ -1105,6 +1140,58 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
       console.log('Internal route:', activeItem.link);
     }
   };
+
+  // Show nothing until mounted (prevent SSR issues)
+  if (!isMounted) {
+    return (
+      <div className="relative w-full h-full bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // Fallback UI when WebGL is not supported
+  if (!webglSupported) {
+    const displayItems = items.length ? items : defaultItems;
+    const currentItem = activeItem || displayItems[0];
+    
+    return (
+      <div className="relative w-full h-full bg-background flex items-center justify-center">
+        <div className="text-center p-8 max-w-2xl">
+          <div className="mb-6">
+            <svg className="w-16 h-16 mx-auto text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-foreground mb-2">3D View Unavailable</h3>
+          <p className="text-muted-foreground mb-6">
+            Your browser doesn't support WebGL 2, which is required for the 3D interactive menu.
+          </p>
+          {currentItem && (
+            <div className="mt-8 p-6 bg-secondary/20 rounded-lg">
+              <h4 className="text-2xl font-bold text-foreground mb-3">{currentItem.title}</h4>
+              <div 
+                className="text-muted-foreground prose prose-sm prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: currentItem.description }}
+              />
+              {currentItem.link && (
+                <button
+                  onClick={() => {
+                    if (currentItem.link.startsWith('http')) {
+                      window.open(currentItem.link, '_blank');
+                    }
+                  }}
+                  className="mt-4 px-6 py-2 bg-primary hover:bg-accent text-white rounded-full transition-colors"
+                >
+                  Learn More
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full bg-background">

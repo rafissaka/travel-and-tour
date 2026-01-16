@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Send, User, Bot, UserCircle, Loader2, Power, PowerOff, Clock, CheckCheck, Search, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import PageLoader from '@/app/components/PageLoader';
 
 interface Conversation {
   id: string;
@@ -243,11 +244,7 @@ export default function AdminChatsPage() {
   const selectedConv = conversations.find(c => c.id === selectedConversation);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader text="Loading conversations..." />;
   }
 
   return (

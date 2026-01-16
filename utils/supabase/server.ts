@@ -14,11 +14,20 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value }) => cookieStore.set(name, value))
-          } catch {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, {
+                ...options,
+                // Ensure cookies persist across sessions
+                maxAge: options?.maxAge || 60 * 60 * 24 * 365, // 1 year default
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+              })
+            })
+          } catch (error) {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
+            console.error('Cookie setting error:', error)
           }
         },
       },

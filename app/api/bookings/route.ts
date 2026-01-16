@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { notifyAdmins } from '@/lib/notifications';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser() {
@@ -210,6 +211,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Notify admins about new booking
+    await notifyAdmins(
+      'New Booking Received',
+      `New ${finalBookingType.toLowerCase()} booking from ${user.email}`,
+      `/profile/bookings`
+    );
+
     return NextResponse.json({ booking, success: true }, { status: 201 });
   } catch (error) {
     console.error('Error creating booking:', error);
@@ -308,6 +316,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
+    // Send notification if status changed
     return NextResponse.json(booking);
   } catch (error) {
     console.error('Error updating booking:', error);
