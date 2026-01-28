@@ -2,15 +2,15 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Initialize Firebase in service worker with your config
+// Initialize Firebase in service worker with config from environment variables
+// This file is auto-generated at build time by scripts/generate-firebase-sw.js
 firebase.initializeApp({
-  apiKey: "AIzaSyB-jVj7-YUb07udtnwsxAkqa8RwWYuumsY",
-  authDomain: "godfirsteducation-and-tours.firebaseapp.com",
-  projectId: "godfirsteducation-and-tours",
-  storageBucket: "godfirsteducation-and-tours.firebasestorage.app",
-  messagingSenderId: "972138896496",
-  appId: "1:972138896496:web:155fd40c52c40c698428b5",
-  measurementId: "G-F00DCXKGD1"
+  "apiKey": "AIzaSyB-jVj7-YUb07udtnwsxAkqa8RwWYuumsY",
+  "authDomain": "godfirsteducation-and-tours.firebaseapp.com",
+  "projectId": "godfirsteducation-and-tours",
+  "storageBucket": "godfirsteducation-and-tours.firebasestorage.app",
+  "messagingSenderId": "972138896496",
+  "appId": "1:972138896496:web:155fd40c52c40c698428b5"
 });
 
 // Get messaging instance

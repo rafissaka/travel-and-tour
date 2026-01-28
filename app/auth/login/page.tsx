@@ -102,6 +102,15 @@ export default function LoginPage() {
         }),
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', response.status, response.statusText);
+        toast.error('Server error. Please try again later.');
+        setError('Server error. Please contact support if this persists.');
+        return;
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

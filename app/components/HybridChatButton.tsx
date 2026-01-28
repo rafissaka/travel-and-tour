@@ -220,13 +220,13 @@ export function HybridChatButton() {
     }
   };
 
-  // Don't show chat button for admin users
+  // Don't show chat button while checking auth or for admin users
   if (checkingAuth) {
-    return null; // Don't show anything while checking
+    return null; // Don't show anything while checking authentication
   }
 
   if (isAdmin) {
-    return null; // Hide chat button for admin users
+    return null; // Hide chat button for ADMIN and SUPER_ADMIN users
   }
 
   return (

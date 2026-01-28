@@ -131,7 +131,8 @@ export default function Loading() {
                   animate={{
                     scale: [1, 1.5, 1],
                     opacity: [0.3, 1, 0.3]
-                  }}
+                  }}                                                                                                                              
+                  
                   transition={{
                     duration: 0.6,
                     repeat: Infinity,

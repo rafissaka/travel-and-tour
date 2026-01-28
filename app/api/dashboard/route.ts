@@ -65,38 +65,63 @@ export async function GET(request: NextRequest) {
       }),
     };
 
-    // Fetch user's reservations
-    const reservations = await prisma.reservation.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        reservationType: true,
-        status: true,
-        departureCity: true,
-        arrivalCity: true,
-        hotelCity: true,
-        departureDate: true,
-        checkInDate: true,
-        createdAt: true,
-      },
-    });
+    // Fetch user's reservations from all reservation types
+    const [flightReservations, hotelReservations, packageReservations] = await Promise.all([
+      prisma.flightReservation.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true, status: true, origin: true, destination: true,
+          departureDate: true, createdAt: true,
+        },
+      }),
+      prisma.hotelReservation.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true, status: true, city: true, checkInDate: true, createdAt: true,
+        },
+      }),
+      prisma.packageReservation.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true, status: true, createdAt: true,
+        },
+      }),
+    ]);
+
+    // Combine and format reservations
+    const reservations = [
+      ...flightReservations.map(r => ({ ...r, reservationType: 'FLIGHT', departureCity: r.origin, arrivalCity: r.destination, hotelCity: null, checkInDate: null })),
+      ...hotelReservations.map(r => ({ ...r, reservationType: 'HOTEL', departureCity: null, arrivalCity: null, departureDate: null, hotelCity: r.city })),
+      ...packageReservations.map(r => ({ ...r, reservationType: 'PACKAGE', departureCity: null, arrivalCity: null, hotelCity: null, departureDate: null, checkInDate: null })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+
+    // Count stats from all reservation types
+    const [flightCount, hotelCount, packageCount] = await Promise.all([
+      prisma.flightReservation.count({ where: { userId: user.id } }),
+      prisma.hotelReservation.count({ where: { userId: user.id } }),
+      prisma.packageReservation.count({ where: { userId: user.id } }),
+    ]);
 
     const reservationStats = {
-      total: await prisma.reservation.count({ where: { userId: user.id } }),
-      pending: await prisma.reservation.count({ 
-        where: { userId: user.id, status: 'PENDING' } 
-      }),
-      confirmed: await prisma.reservation.count({ 
-        where: { userId: user.id, status: 'CONFIRMED' } 
-      }),
-      completed: await prisma.reservation.count({ 
-        where: { userId: user.id, status: 'COMPLETED' } 
-      }),
-      cancelled: await prisma.reservation.count({ 
-        where: { userId: user.id, status: 'CANCELLED' } 
-      }),
+      total: flightCount + hotelCount + packageCount,
+      pending: (await prisma.flightReservation.count({ where: { userId: user.id, status: 'PENDING_QUOTE' } })) +
+               (await prisma.hotelReservation.count({ where: { userId: user.id, status: 'PENDING_QUOTE' } })) +
+               (await prisma.packageReservation.count({ where: { userId: user.id, status: 'PENDING_QUOTE' } })),
+      confirmed: (await prisma.flightReservation.count({ where: { userId: user.id, status: 'CONFIRMED' } })) +
+                 (await prisma.hotelReservation.count({ where: { userId: user.id, status: 'CONFIRMED' } })) +
+                 (await prisma.packageReservation.count({ where: { userId: user.id, status: 'CONFIRMED' } })),
+      completed: (await prisma.flightReservation.count({ where: { userId: user.id, status: 'COMPLETED' } })) +
+                 (await prisma.hotelReservation.count({ where: { userId: user.id, status: 'COMPLETED' } })) +
+                 (await prisma.packageReservation.count({ where: { userId: user.id, status: 'COMPLETED' } })),
+      cancelled: (await prisma.flightReservation.count({ where: { userId: user.id, status: 'CANCELLED' } })) +
+                 (await prisma.hotelReservation.count({ where: { userId: user.id, status: 'CANCELLED' } })) +
+                 (await prisma.packageReservation.count({ where: { userId: user.id, status: 'CANCELLED' } })),
     };
 
     // Fetch user's bookings

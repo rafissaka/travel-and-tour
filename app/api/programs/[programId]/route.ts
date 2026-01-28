@@ -12,8 +12,9 @@ export async function GET(
   try {
     const { programId } = await params;
 
-    const program = await prisma.program.findUnique({
-      where: { id: programId },
+    // Try to find by slug first, then by id
+    let program = await prisma.program.findUnique({
+      where: { slug: programId },
       select: {
         id: true,
         title: true,
@@ -37,6 +38,35 @@ export async function GET(
         isActive: true,
       },
     });
+
+    // If not found by slug, try by id
+    if (!program) {
+      program = await prisma.program.findUnique({
+        where: { id: programId },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          tagline: true,
+          description: true,
+          fullDescription: true,
+          country: true,
+          university: true,
+          duration: true,
+          startDate: true,
+          endDate: true,
+          deadline: true,
+          imageUrl: true,
+          features: true,
+          requirements: true,
+          benefits: true,
+          tuitionFee: true,
+          applicationFee: true,
+          scholarshipType: true,
+          isActive: true,
+        },
+      });
+    }
 
     if (!program) {
       return NextResponse.json(

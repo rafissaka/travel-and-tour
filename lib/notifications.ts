@@ -191,6 +191,124 @@ export async function notifyNewReservation(
 }
 
 /**
+ * Notify user about a new visa assistance request
+ */
+export async function notifyNewVisaAssistance(
+  userId: string,
+  visaAssistanceId: string,
+  destinationCountry: string
+) {
+  return createNotification({
+    userId,
+    type: 'NEW_BOOKING',
+    title: 'Visa Assistance Request Received',
+    message: `Your visa assistance request for ${destinationCountry} has been received`,
+    actionUrl: `/profile/bookings`,
+    metadata: { visaAssistanceId },
+  });
+}
+
+/**
+ * Notify admins about a new visa assistance request from user
+ */
+export async function notifyAdminsNewVisaAssistance(
+  visaAssistanceId: string,
+  userName: string,
+  destinationCountry: string
+) {
+  const admins = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ['ADMIN', 'SUPER_ADMIN'],
+      },
+    },
+  });
+
+  const notifications = await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        userId: admin.id,
+        type: 'NEW_BOOKING',
+        title: 'New Visa Assistance Request',
+        message: `${userName} requested visa assistance for ${destinationCountry}`,
+        actionUrl: `/profile/bookings?tab=consultations`,
+        metadata: { visaAssistanceId, userName },
+      })
+    )
+  );
+
+  // Send push notification to all admins
+  sendPushNotificationToAdmins({
+    title: 'New Visa Assistance Request',
+    body: `${userName} requested visa assistance for ${destinationCountry}`,
+    actionUrl: `/profile/bookings?tab=consultations`,
+  }).catch((error: unknown) => {
+    console.error('Failed to send push notification to admins:', error);
+  });
+
+  return notifications;
+}
+
+/**
+ * Notify user about a new itinerary planning request
+ */
+export async function notifyNewItinerary(
+  userId: string,
+  itineraryId: string,
+  destination: string
+) {
+  return createNotification({
+    userId,
+    type: 'NEW_BOOKING',
+    title: 'Itinerary Planning Request Received',
+    message: `Your itinerary planning request for ${destination} has been received`,
+    actionUrl: `/profile/bookings`,
+    metadata: { itineraryId },
+  });
+}
+
+/**
+ * Notify admins about a new itinerary planning request from user
+ */
+export async function notifyAdminsNewItinerary(
+  itineraryId: string,
+  userName: string,
+  destination: string
+) {
+  const admins = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ['ADMIN', 'SUPER_ADMIN'],
+      },
+    },
+  });
+
+  const notifications = await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        userId: admin.id,
+        type: 'NEW_BOOKING',
+        title: 'New Itinerary Planning Request',
+        message: `${userName} requested itinerary planning for ${destination}`,
+        actionUrl: `/profile/bookings?tab=consultations`,
+        metadata: { itineraryId, userName },
+      })
+    )
+  );
+
+  // Send push notification to all admins
+  sendPushNotificationToAdmins({
+    title: 'New Itinerary Planning Request',
+    body: `${userName} requested itinerary planning for ${destination}`,
+    actionUrl: `/profile/bookings?tab=consultations`,
+  }).catch((error: unknown) => {
+    console.error('Failed to send push notification to admins:', error);
+  });
+
+  return notifications;
+}
+
+/**
  * Notify admins about a new reservation from user
  */
 export async function notifyAdminsNewReservation(

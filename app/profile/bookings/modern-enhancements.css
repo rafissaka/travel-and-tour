@@ -1,0 +1,48 @@
+/* Modern Enhancements for Bookings Page */
+
+/* Glassmorphism effects */
+.booking-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced hover effects */
+.booking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15);
+  border-color: rgba(var(--primary), 0.3);
+}
+
+/* Smooth animations */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Better button styles */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.02);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Modern stats cards */
+.stats-card {
+  background: linear-gradient(135deg, rgba(var(--primary), 0.1), rgba(var(--accent), 0.05));
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 2px solid rgba(var(--primary), 0.2);
+}
+
+.stats-card:hover {
+  border-color: rgba(var(--primary), 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}

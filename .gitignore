@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env
+.env.local
+.env.production
+.env.development
 
 # vercel
 .vercel
@@ -42,5 +46,12 @@ next-env.d.ts
 
 /app/generated/prisma
 
-.env
-.env.local
+# Firebase service account keys (NEVER commit these!)
+**/serviceAccountKey.json
+**/firebase-adminsdk-*.json
+
+# Auto-generated Firebase service worker (contains env vars)
+public/firebase-messaging-sw.js
+
+# Temporary diagnostic files
+tmp_rovodev_*

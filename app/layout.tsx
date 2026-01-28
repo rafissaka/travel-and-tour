@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { HybridChatButton } from "./components/HybridChatButton";
 import { Providers } from "./providers";
 import NotificationListener from "./components/NotificationListener";
 
-const raleway = Raleway({
-  variable: "--font-raleway",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
@@ -49,7 +49,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${raleway.variable} antialiased`}
+        className={`${outfit.variable} antialiased`}
       >
         <Providers>
           <ThemeProvider>

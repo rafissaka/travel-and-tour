@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
       bookings.forEach((booking) => {
         const serviceTitle = booking.service?.title || 'Unknown Service';
-        
+
         activities.push({
           id: `booking-${booking.id}`,
           type: 'booking',
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
       applications.forEach((app) => {
         const programTitle = app.program?.title || app.programName || 'Unknown Program';
-        
+
         activities.push({
           id: `application-${app.id}`,
           type: 'application',
@@ -90,33 +90,79 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Reservations
+    // 3. Reservations
     if (!type || type === 'reservation') {
-      const reservations = await prisma.reservation.findMany({
+      // Fetch Flight Reservations
+      const flightReservations = await prisma.flightReservation.findMany({
         where: { userId: dbUser.id },
         orderBy: { createdAt: 'desc' },
         take: limit,
       });
 
-      reservations.forEach((reservation) => {
-        let description = '';
-        if (reservation.reservationType === 'FLIGHT') {
-          description = `Flight reservation from ${reservation.departureCity} to ${reservation.arrivalCity}`;
-        } else if (reservation.reservationType === 'HOTEL') {
-          description = `Hotel reservation in ${reservation.hotelCity}`;
-        } else {
-          description = `Flight & Hotel reservation`;
-        }
-
+      flightReservations.forEach((reservation) => {
         activities.push({
-          id: `reservation-${reservation.id}`,
+          id: `flight-reservation-${reservation.id}`,
           type: 'reservation',
           action: 'created',
-          title: 'Travel Reservation',
-          description,
+          title: 'Flight Reservation',
+          description: `Flight reservation from ${reservation.origin} to ${reservation.destination}`,
           status: reservation.status,
           timestamp: reservation.createdAt,
           metadata: {
-            reservationType: reservation.reservationType,
+            reservationType: 'FLIGHT',
+            status: reservation.status,
+          },
+        });
+      });
+
+      // Fetch Hotel Reservations
+      const hotelReservations = await prisma.hotelReservation.findMany({
+        where: { userId: dbUser.id },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      });
+
+      hotelReservations.forEach((reservation) => {
+        activities.push({
+          id: `hotel-reservation-${reservation.id}`,
+          type: 'reservation',
+          action: 'created',
+          title: 'Hotel Reservation',
+          description: `Hotel reservation in ${reservation.city}`,
+          status: reservation.status,
+          timestamp: reservation.createdAt,
+          metadata: {
+            reservationType: 'HOTEL',
+            status: reservation.status,
+          },
+        });
+      });
+
+      // Fetch Package Reservations
+      const packageReservations = await prisma.packageReservation.findMany({
+        where: { userId: dbUser.id },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          flightReservation: { select: { destination: true, origin: true } },
+          hotelReservation: { select: { city: true } },
+        },
+        take: limit,
+      });
+
+      packageReservations.forEach((reservation) => {
+        // Safe access to nested properties in case relations are missing (though they shouldn't be)
+        const city = reservation.hotelReservation?.city || reservation.flightReservation?.destination || 'Unknown Destination';
+
+        activities.push({
+          id: `package-reservation-${reservation.id}`,
+          type: 'reservation',
+          action: 'created',
+          title: 'Package Reservation',
+          description: `Flight & Hotel package to ${city}`,
+          status: reservation.status,
+          timestamp: reservation.createdAt,
+          metadata: {
+            reservationType: 'BOTH',
             status: reservation.status,
           },
         });

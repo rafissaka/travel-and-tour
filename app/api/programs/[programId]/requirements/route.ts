@@ -36,8 +36,29 @@ export async function GET(
   try {
     const { programId } = await params;
 
+    // First, find the program by slug or id to get the actual program ID
+    let program = await prisma.program.findUnique({
+      where: { slug: programId },
+      select: { id: true },
+    });
+
+    // If not found by slug, try by id
+    if (!program) {
+      program = await prisma.program.findUnique({
+        where: { id: programId },
+        select: { id: true },
+      });
+    }
+
+    if (!program) {
+      return NextResponse.json(
+        { error: 'Program not found' },
+        { status: 404 }
+      );
+    }
+
     const requirements = await prisma.programRequirement.findMany({
-      where: { programId },
+      where: { programId: program.id },
       include: {
         program: {
           select: {

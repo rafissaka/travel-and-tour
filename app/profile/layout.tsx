@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
 import NotificationToastListener from '../components/NotificationToastListener';
+import NotificationListener from '../components/NotificationListener';
 import PageLoader from '../components/PageLoader';
 
 const sidebarLinks = [
@@ -87,6 +88,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-screen bg-background">
       {/* Notification Toast Listener - Admin Only */}
+      <NotificationListener />
       {isAdmin && <NotificationToastListener />}
 
       {/* Mobile Header */}

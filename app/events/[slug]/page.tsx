@@ -8,6 +8,7 @@ import { Calendar, MapPin, Clock, Users, DollarSign, CheckCircle, Loader2, Arrow
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import ConsultationForm from '@/app/components/ConsultationForm';
 
 interface Event {
   id: string;
@@ -33,6 +34,12 @@ interface Event {
   itinerary: any;
   isFeatured: boolean;
   createdAt: string;
+  serviceId: string | null;
+  service: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
 }
 
 export default function EventDetailPage() {
@@ -144,7 +151,6 @@ export default function EventDetailPage() {
         return;
       }
 
-      toast.success('Booking created successfully!');
       setShowBookingModal(false);
 
       // Reset form
@@ -159,12 +165,13 @@ export default function EventDetailPage() {
 
       // Redirect based on payment option
       if (bookingData.paymentOption === 'PAY_NOW') {
-        toast.info('Redirecting to payment...');
-        // TODO: Implement payment gateway redirection
+        toast.success('Booking created! Redirecting to payment...');
+        // Redirect to payment page
         setTimeout(() => {
-          router.push(`/profile/bookings?booking=${data.booking.id}`);
-        }, 1500);
+          router.push(`/payment?bookingId=${data.booking.id}`);
+        }, 1000);
       } else {
+        toast.success('Booking created successfully!');
         setTimeout(() => {
           router.push('/profile/bookings');
         }, 1500);
@@ -537,11 +544,19 @@ export default function EventDetailPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                className={`bg-card rounded-2xl shadow-2xl ${
+                  (event?.service?.slug === 'family-travel' || event?.service?.slug === 'tours')
+                    ? 'max-w-5xl'
+                    : 'max-w-2xl'
+                } w-full max-h-[90vh] overflow-y-auto`}
               >
                 {/* Modal Header */}
                 <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-foreground">Book {event?.title}</h2>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {(event?.service?.slug === 'family-travel' || event?.service?.slug === 'tours')
+                      ? 'Book an appointment with us for consultation'
+                      : `Book ${event?.title}`}
+                  </h2>
                   <button
                     onClick={() => setShowBookingModal(false)}
                     className="p-2 hover:bg-muted rounded-full transition-colors"
@@ -551,7 +566,18 @@ export default function EventDetailPage() {
                 </div>
 
                 {/* Modal Body */}
-                <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
+                {(event?.service?.slug === 'family-travel' || event?.service?.slug === 'tours') && event.serviceId ? (
+                  <div className="p-6">
+                    <ConsultationForm
+                      serviceId={event.serviceId}
+                      serviceTitle={event.service?.title || event.title}
+                      onClose={() => {
+                        setShowBookingModal(false);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
                   {/* Participants */}
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-2">
@@ -561,17 +587,39 @@ export default function EventDetailPage() {
                       type="number"
                       min="1"
                       max={event?.maxParticipants ? event.maxParticipants - event.currentParticipants : 100}
-                      value={bookingData.participants}
-                      onChange={(e) => setBookingData({ ...bookingData, participants: parseInt(e.target.value) })}
+                      value={bookingData.participants || 1}
+                      onChange={(e) => setBookingData({ ...bookingData, participants: parseInt(e.target.value) || 1 })}
                       className="w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       required
                     />
-                    {event?.price && (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Total: ${totalPrice.toFixed(2)} ({bookingData.participants} × ${event.price})
-                      </p>
-                    )}
                   </div>
+
+                  {/* Price Breakdown */}
+                  {event?.price && (
+                    <div className="bg-muted/30 rounded-xl p-4 space-y-2">
+                      <h3 className="font-semibold text-foreground mb-3">Price Breakdown</h3>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Price per person</span>
+                        <span className="font-medium text-foreground">GH₵ {Number(event.price).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Participants</span>
+                        <span className="font-medium text-foreground">× {bookingData.participants}</span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-2 border-t border-border">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-medium text-foreground">GH₵ {totalPrice.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Service fee (2%)</span>
+                        <span className="font-medium text-foreground">GH₵ {(totalPrice * 0.02).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
+                        <span className="text-foreground">Total</span>
+                        <span className="text-primary">GH₵ {(totalPrice * 1.02).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Full Name */}
                   <div>
@@ -707,6 +755,7 @@ export default function EventDetailPage() {
                     </button>
                   </div>
                 </form>
+                )}
               </motion.div>
             </div>
           )}

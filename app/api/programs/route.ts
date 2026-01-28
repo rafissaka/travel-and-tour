@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        programRequirements: true,
       },
     });
 

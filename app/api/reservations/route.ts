@@ -35,23 +35,64 @@ export async function GET(request: NextRequest) {
     }
 
     const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+    const whereClause = isAdmin ? {} : { userId: user.id };
 
-    const reservations = await prisma.reservation.findMany({
-      where: isAdmin ? {} : { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
+    // Fetch all three types of reservations
+    const [flightReservations, hotelReservations, packageReservations] = await Promise.all([
+      prisma.flightReservation.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.hotelReservation.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      }),
+      prisma.packageReservation.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          flightReservation: true,
+          hotelReservation: true,
+        },
+      }),
+    ]);
 
-    return NextResponse.json({ reservations });
+    // Combine and add type field
+    const allReservations = [
+      ...flightReservations.map(r => ({ ...r, type: 'FLIGHT' })),
+      ...hotelReservations.map(r => ({ ...r, type: 'HOTEL' })),
+      ...packageReservations.map(r => ({ ...r, type: 'PACKAGE' })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return NextResponse.json({ reservations: allReservations });
   } catch (error) {
     console.error('Error fetching reservations:', error);
     return NextResponse.json(
@@ -61,191 +102,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create a new reservation
-export async function POST(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const {
-      reservationType,
-      fullName,
-      email,
-      phone,
-      flightType,
-      departureCity,
-      arrivalCity,
-      departureDate,
-      returnDate,
-      passengers,
-      travelClass,
-      hotelCity,
-      checkInDate,
-      checkOutDate,
-      rooms,
-      guests,
-      hotelPreference,
-      specialRequests,
-    } = body;
-
-    // Validation
-    if (!reservationType || !fullName || !email || !phone) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Create reservation
-    const reservation = await prisma.reservation.create({
-      data: {
-        userId: user.id,
-        reservationType,
-        fullName,
-        email,
-        phone,
-        flightType: flightType || null,
-        departureCity: departureCity || null,
-        arrivalCity: arrivalCity || null,
-        departureDate: departureDate ? new Date(departureDate) : null,
-        returnDate: returnDate ? new Date(returnDate) : null,
-        passengers: passengers || null,
-        travelClass: travelClass || null,
-        hotelCity: hotelCity || null,
-        checkInDate: checkInDate ? new Date(checkInDate) : null,
-        checkOutDate: checkOutDate ? new Date(checkOutDate) : null,
-        rooms: rooms || null,
-        guests: guests || null,
-        hotelPreference: hotelPreference || null,
-        specialRequests: specialRequests || null,
-      },
-    });
-
-    // Send notifications to admins (non-blocking)
-    notifyAdminsNewReservation(reservation.id, fullName, reservationType).catch(error => {
-      console.error('Error sending reservation notifications:', error);
-    });
-
-    return NextResponse.json({ reservation }, { status: 201 });
-  } catch (error) {
-    console.error('Error creating reservation:', error);
-    return NextResponse.json(
-      { error: 'Failed to create reservation' },
-      { status: 500 }
-    );
-  }
-}
-
-// PATCH - Update reservation status
-export async function PATCH(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Only admins can update reservation status' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { id, status } = body;
-
-    if (!id || !status) {
-      return NextResponse.json(
-        { error: 'Missing reservation ID or status' },
-        { status: 400 }
-      );
-    }
-
-    const updateData: any = { status };
-
-    if (status === 'CONFIRMED') {
-      updateData.confirmedAt = new Date();
-    } else if (status === 'CANCELLED') {
-      updateData.cancelledAt = new Date();
-    }
-
-    const reservation = await prisma.reservation.update({
-      where: { id },
-      data: updateData,
-    });
-
-    return NextResponse.json({ reservation });
-  } catch (error) {
-    console.error('Error updating reservation:', error);
-    return NextResponse.json(
-      { error: 'Failed to update reservation' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE - Cancel a reservation (user can cancel their own)
-export async function DELETE(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Missing reservation ID' },
-        { status: 400 }
-      );
-    }
-
-    // Check if reservation belongs to user or user is admin
-    const reservation = await prisma.reservation.findUnique({
-      where: { id },
-    });
-
-    if (!reservation) {
-      return NextResponse.json(
-        { error: 'Reservation not found' },
-        { status: 404 }
-      );
-    }
-
-    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
-    const isOwner = reservation.userId === user.id;
-
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json(
-        { error: 'Not authorized to cancel this reservation' },
-        { status: 403 }
-      );
-    }
-
-    await prisma.reservation.update({
-      where: { id },
-      data: {
-        status: 'CANCELLED',
-        cancelledAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error cancelling reservation:', error);
-    return NextResponse.json(
-      { error: 'Failed to cancel reservation' },
-      { status: 500 }
-    );
-  }
-}
+// OLD RESERVATION ENDPOINTS REMOVED
+// Use the following new endpoints instead:
+// - POST /api/reservations/flights/quote - Create flight reservation
+// - POST /api/reservations/hotels/quote - Create hotel reservation
+// - GET /api/reservations/flights/quote - Get user's flight reservations
+// - GET /api/reservations/hotels/quote - Get user's hotel reservations

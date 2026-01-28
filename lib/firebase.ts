@@ -1,15 +1,16 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging, isSupported } from 'firebase/messaging';
 
-// Your Firebase configuration
+// Firebase configuration from environment variables
+// All values must be set in .env.local and deployment platform
 const firebaseConfig = {
-  apiKey: "AIzaSyB-jVj7-YUb07udtnwsxAkqa8RwWYuumsY",
-  authDomain: "godfirsteducation-and-tours.firebaseapp.com",
-  projectId: "godfirsteducation-and-tours",
-  storageBucket: "godfirsteducation-and-tours.firebasestorage.app",
-  messagingSenderId: "972138896496",
-  appId: "1:972138896496:web:155fd40c52c40c698428b5",
-  measurementId: "G-F00DCXKGD1"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -17,6 +18,29 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Get messaging instance (only in browser)
 let messaging: Messaging | null = null;
+let serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
+
+// Register service worker for FCM
+async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (serviceWorkerRegistration) {
+    return serviceWorkerRegistration;
+  }
+
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    console.warn('Service Worker not supported');
+    return null;
+  }
+
+  try {
+    console.log('🔧 Registering service worker for FCM...');
+    serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    console.log('✅ Service worker registered successfully');
+    return serviceWorkerRegistration;
+  } catch (error) {
+    console.error('❌ Service worker registration failed:', error);
+    return null;
+  }
+}
 
 // Helper function to get or initialize messaging
 async function getMessagingInstance(): Promise<Messaging | null> {
@@ -34,6 +58,9 @@ async function getMessagingInstance(): Promise<Messaging | null> {
       console.warn('Firebase messaging is not supported in this browser');
       return null;
     }
+
+    // Register service worker first
+    await registerServiceWorker();
 
     messaging = getMessaging(app);
     return messaging;

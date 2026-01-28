@@ -68,31 +68,40 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Fetch all reservations stats
+    // Fetch all reservations stats (FlightReservation, HotelReservation, PackageReservation)
+    const flightResCount = await prisma.flightReservation.count();
+    const hotelResCount = await prisma.hotelReservation.count();
+    const packageResCount = await prisma.packageReservation.count();
+    
     const reservationStats = {
-      total: await prisma.reservation.count(),
-      pending: await prisma.reservation.count({ where: { status: 'PENDING' } }),
-      confirmed: await prisma.reservation.count({ where: { status: 'CONFIRMED' } }),
-      completed: await prisma.reservation.count({ where: { status: 'COMPLETED' } }),
-      cancelled: await prisma.reservation.count({ where: { status: 'CANCELLED' } }),
-      flight: await prisma.reservation.count({ where: { reservationType: 'FLIGHT' } }),
-      hotel: await prisma.reservation.count({ where: { reservationType: 'HOTEL' } }),
-      both: await prisma.reservation.count({ where: { reservationType: 'BOTH' } }),
+      total: flightResCount + hotelResCount + packageResCount,
+      pending: (await prisma.flightReservation.count({ where: { status: 'PENDING_QUOTE' } })) +
+               (await prisma.hotelReservation.count({ where: { status: 'PENDING_QUOTE' } })) +
+               (await prisma.packageReservation.count({ where: { status: 'PENDING_QUOTE' } })),
+      confirmed: (await prisma.flightReservation.count({ where: { status: 'CONFIRMED' } })) +
+                 (await prisma.hotelReservation.count({ where: { status: 'CONFIRMED' } })) +
+                 (await prisma.packageReservation.count({ where: { status: 'CONFIRMED' } })),
+      completed: (await prisma.flightReservation.count({ where: { status: 'COMPLETED' } })) +
+                 (await prisma.hotelReservation.count({ where: { status: 'COMPLETED' } })) +
+                 (await prisma.packageReservation.count({ where: { status: 'COMPLETED' } })),
+      cancelled: (await prisma.flightReservation.count({ where: { status: 'CANCELLED' } })) +
+                 (await prisma.hotelReservation.count({ where: { status: 'CANCELLED' } })) +
+                 (await prisma.packageReservation.count({ where: { status: 'CANCELLED' } })),
+      flight: flightResCount,
+      hotel: hotelResCount,
+      both: packageResCount,
     };
 
-    // Fetch recent reservations
-    const recentReservations = await prisma.reservation.findMany({
+    // Fetch recent flight reservations
+    const recentFlightRes = await prisma.flightReservation.findMany({
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: {
         id: true,
-        reservationType: true,
         status: true,
-        departureCity: true,
-        arrivalCity: true,
-        hotelCity: true,
+        origin: true,
+        destination: true,
         departureDate: true,
-        checkInDate: true,
         createdAt: true,
         user: {
           select: {
@@ -104,6 +113,19 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+
+    const recentReservations = recentFlightRes.map(r => ({
+      id: r.id,
+      reservationType: 'FLIGHT' as const,
+      status: r.status,
+      departureCity: r.origin,
+      arrivalCity: r.destination,
+      hotelCity: null,
+      departureDate: r.departureDate,
+      checkInDate: null,
+      createdAt: r.createdAt,
+      user: r.user,
+    }));
 
     // Fetch all bookings stats
     const bookingStats = {
@@ -227,9 +249,9 @@ export async function GET(request: NextRequest) {
       newApplications: await prisma.application.count({ 
         where: { createdAt: { gte: thirtyDaysAgo } } 
       }),
-      newReservations: await prisma.reservation.count({ 
-        where: { createdAt: { gte: thirtyDaysAgo } } 
-      }),
+      newReservations: (await prisma.flightReservation.count({ where: { createdAt: { gte: thirtyDaysAgo } } })) +
+                       (await prisma.hotelReservation.count({ where: { createdAt: { gte: thirtyDaysAgo } } })) +
+                       (await prisma.packageReservation.count({ where: { createdAt: { gte: thirtyDaysAgo } } })),
       newBookings: await prisma.booking.count({ 
         where: { createdAt: { gte: thirtyDaysAgo } } 
       }),

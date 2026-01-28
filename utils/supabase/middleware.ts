@@ -67,9 +67,15 @@ export async function updateSession(request: NextRequest) {
   // issues with users being randomly logged out.
 
   // IMPORTANT: Don't remove getClaims()
-  const { data } = await supabase.auth.getClaims()
-
-  const user = data?.claims
+  let user = null
+  try {
+    const { data } = await supabase.auth.getClaims()
+    user = data?.claims
+  } catch (error) {
+    // Handle Supabase fetch errors gracefully
+    console.error('Supabase getClaims error:', error)
+    // Continue without user (will be treated as unauthenticated)
+  }
 
   // Only protect specific routes that require authentication
   const protectedPaths = ['/dashboard', '/admin', '/api/admin']

@@ -133,6 +133,9 @@ export default function ApplicationDetailsPage() {
       const response = await fetch(`/api/applications/${applicationId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('📋 Application Data:', data);
+        console.log('🎓 Education Field:', data.education);
+        console.log('💼 Work Experience Field:', data.workExperience);
         setApplication(data);
         setFormData(data);
       } else {

@@ -1,0 +1,4 @@
+# Firebase service worker contains public API credentials
+# These are safe to expose - see FIREBASE_SECURITY_EXPLANATION.md
+# Reference: https://firebase.google.com/docs/projects/api-keys
+public/firebase-messaging-sw.js linguist-generated=true

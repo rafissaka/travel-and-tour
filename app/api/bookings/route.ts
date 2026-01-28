@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
-import { notifyAdmins } from '@/lib/notifications';
+import { notifyAdmins, notifyNewBooking, notifyBookingStatusChange, notifyPaymentReceived } from '@/lib/notifications';
+
+// Calculate service fee (2%)
+function calculateServiceFee(amount: number): number {
+  return amount * 0.02;
+}
+
+// Calculate total with service fee
+function calculateTotalWithFee(baseAmount: number): { baseAmount: number; serviceFee: number; total: number } {
+  const serviceFee = calculateServiceFee(baseAmount);
+  return {
+    baseAmount,
+    serviceFee,
+    total: baseAmount + serviceFee,
+  };
+}
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser() {
@@ -25,7 +40,7 @@ async function getAuthenticatedUser() {
   return dbUser;
 }
 
-// GET all bookings (admin sees all, user sees only their own)
+// GET all bookings (admin sees all, user sees only their own) or single booking by ID
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -34,9 +49,60 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const status = searchParams.get('status');
     const serviceId = searchParams.get('serviceId');
 
+    // If ID is provided, fetch single booking
+    if (id) {
+      const booking = await prisma.booking.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          service: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              imageUrl: true,
+            },
+          },
+          event: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              imageUrl: true,
+              startDate: true,
+              price: true,
+              maxParticipants: true,
+              currentParticipants: true,
+            },
+          },
+        },
+      });
+
+      if (!booking) {
+        return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+      }
+
+      // Check permissions - users can only see their own bookings
+      if (user.role === 'USER' && booking.userId !== user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      return NextResponse.json(booking);
+    }
+
+    // Otherwise, fetch all bookings
     const where: any = {};
 
     // Regular users can only see their own bookings
@@ -80,6 +146,9 @@ export async function GET(request: NextRequest) {
             slug: true,
             imageUrl: true,
             startDate: true,
+            price: true,
+            maxParticipants: true,
+            currentParticipants: true,
           },
         },
       },
@@ -138,6 +207,18 @@ export async function POST(request: NextRequest) {
     // Determine booking type if not provided
     const finalBookingType = bookingType || (eventId ? 'EVENT' : 'SERVICE');
 
+    // Calculate total amount with service fee
+    let finalTotalAmount = null;
+    let serviceFeeAmount = 0;
+    let baseAmountValue = 0;
+
+    if (totalAmount && totalAmount > 0) {
+      const calculation = calculateTotalWithFee(totalAmount);
+      baseAmountValue = calculation.baseAmount;
+      serviceFeeAmount = calculation.serviceFee;
+      finalTotalAmount = calculation.total;
+    }
+
     // Determine payment status based on payment option
     const paymentStatus = paymentOption === 'PAY_NOW' ? 'PENDING' : 'PENDING';
 
@@ -146,6 +227,9 @@ export async function POST(request: NextRequest) {
       message: specialRequests || '',
       preferredDate: preferredDate || null,
       preferredTime: preferredTime || null,
+      baseAmount: baseAmountValue,
+      serviceFee: serviceFeeAmount,
+      totalWithFee: finalTotalAmount,
     };
 
     // Add contact info for event bookings
@@ -164,7 +248,7 @@ export async function POST(request: NextRequest) {
         bookingType: finalBookingType,
         status: 'PENDING',
         participants: participants || 1,
-        totalAmount: totalAmount || null,
+        totalAmount: finalTotalAmount,
         paymentStatus,
         specialRequests: JSON.stringify(requestsData),
         bookingDate: new Date(),
@@ -211,14 +295,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Get event or service name for notifications
+    const itemName = booking.event?.title || booking.service?.title || 'Unknown';
+
+    // Notify user about new booking
+    await notifyNewBooking(
+      user.id,
+      booking.id,
+      itemName
+    );
+
     // Notify admins about new booking
     await notifyAdmins(
       'New Booking Received',
-      `New ${finalBookingType.toLowerCase()} booking from ${user.email}`,
+      `New ${finalBookingType.toLowerCase()} booking from ${user.email} for "${itemName}"`,
       `/profile/bookings`
     );
 
-    return NextResponse.json({ booking, success: true }, { status: 201 });
+    return NextResponse.json({
+      booking,
+      success: true,
+      pricing: {
+        baseAmount: baseAmountValue,
+        serviceFee: serviceFeeAmount,
+        total: finalTotalAmount,
+      }
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating booking:', error);
     return NextResponse.json(
@@ -228,7 +330,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH update booking (admin only for status changes)
+// PATCH update booking
 export async function PATCH(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -237,7 +339,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, status, paymentStatus, totalAmount, specialRequests } = body;
+    const { id, status, paymentStatus, totalAmount, specialRequests, participants, baseAmount } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -249,6 +351,10 @@ export async function PATCH(request: NextRequest) {
     // Check if user owns the booking or is admin
     const existingBooking = await prisma.booking.findUnique({
       where: { id },
+      include: {
+        event: true,
+        service: true,
+      },
     });
 
     if (!existingBooking) {
@@ -258,12 +364,30 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Only admin can change status and payment status
-    const updateData: any = {};
+    // Check permissions
+    if (
+      existingBooking.userId !== user.id &&
+      user.role !== 'ADMIN' &&
+      user.role !== 'SUPER_ADMIN'
+    ) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
+    const updateData: any = {};
+    let oldParticipants = existingBooking.participants;
+    let statusChanged = false;
+    let paymentStatusChanged = false;
+
+    // Admin-only updates
     if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-      if (status) updateData.status = status;
-      if (paymentStatus) updateData.paymentStatus = paymentStatus;
+      if (status) {
+        updateData.status = status;
+        statusChanged = existingBooking.status !== status;
+      }
+      if (paymentStatus) {
+        updateData.paymentStatus = paymentStatus;
+        paymentStatusChanged = existingBooking.paymentStatus !== paymentStatus;
+      }
       if (totalAmount !== undefined) updateData.totalAmount = totalAmount;
 
       // Set confirmed/cancelled timestamps
@@ -274,9 +398,47 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Users can only update their own special requests
-    if (existingBooking.userId === user.id && specialRequests !== undefined) {
-      updateData.specialRequests = specialRequests;
+    // User can update participants and special requests for their own bookings
+    if (existingBooking.userId === user.id) {
+      if (participants !== undefined && participants !== existingBooking.participants) {
+        updateData.participants = participants;
+
+        // Recalculate total with new participants
+        if (baseAmount && baseAmount > 0) {
+          const newBaseAmount = baseAmount * participants;
+          const calculation = calculateTotalWithFee(newBaseAmount);
+          updateData.totalAmount = calculation.total;
+
+          // Update special requests with new pricing info
+          let requestsData: any = {};
+          try {
+            requestsData = JSON.parse(existingBooking.specialRequests || '{}');
+          } catch (e) {
+            requestsData = {};
+          }
+          requestsData.baseAmount = calculation.baseAmount;
+          requestsData.serviceFee = calculation.serviceFee;
+          requestsData.totalWithFee = calculation.total;
+          updateData.specialRequests = JSON.stringify(requestsData);
+        }
+
+        // Update event participant count if this is an event booking
+        if (existingBooking.eventId) {
+          const participantChange = participants - oldParticipants;
+          await prisma.event.update({
+            where: { id: existingBooking.eventId },
+            data: {
+              currentParticipants: {
+                increment: participantChange,
+              },
+            },
+          });
+        }
+      }
+
+      if (specialRequests !== undefined && !updateData.specialRequests) {
+        updateData.specialRequests = specialRequests;
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -311,12 +473,33 @@ export async function PATCH(request: NextRequest) {
             id: true,
             title: true,
             slug: true,
+            price: true,
           },
         },
       },
     });
 
-    // Send notification if status changed
+    const itemName = booking.event?.title || booking.service?.title || 'Unknown';
+
+    // Send notifications
+    if (statusChanged) {
+      await notifyBookingStatusChange(
+        existingBooking.userId,
+        booking.id,
+        booking.status,
+        itemName
+      );
+    }
+
+    if (paymentStatusChanged && booking.paymentStatus === 'PAID') {
+      await notifyPaymentReceived(
+        existingBooking.userId,
+        booking.id,
+        Number(booking.totalAmount || 0),
+        'GHS'
+      );
+    }
+
     return NextResponse.json(booking);
   } catch (error) {
     console.error('Error updating booking:', error);

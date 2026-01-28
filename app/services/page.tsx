@@ -57,9 +57,15 @@ export default function ServicesPage() {
 
   const fetchServices = async () => {
     try {
+      console.log('🔍 Fetching services from API...');
       const response = await fetch('/api/services?active=true');
+      console.log('📡 API Response Status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('📦 Services received:', data.length);
+        console.log('📋 Services data:', data);
+        
         // Map icon names to actual icon components
         const servicesWithIcons = data.map((service: any) => ({
           ...service,
@@ -67,9 +73,14 @@ export default function ServicesPage() {
           features: Array.isArray(service.features) ? service.features : []
         }));
         setServices(servicesWithIcons);
+        console.log('✅ Services loaded successfully:', servicesWithIcons.length);
+      } else {
+        console.error('❌ API returned error status:', response.status);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
+      console.error('❌ Error fetching services:', error);
     } finally {
       setLoading(false);
     }
