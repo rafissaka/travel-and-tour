@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "amadeus": "^10.2.0",
     "@gsap/react": "^2.1.2",
     "@hugeicons/core-free-icons": "^2.0.0",
     "@hugeicons/react": "^1.1.1",
@@ -23,6 +24,7 @@
     "@tiptap/starter-kit": "^3.11.0",
     "@types/bcryptjs": "^3.0.0",
     "@types/nodemailer": "^7.0.4",
+    "amadeus": "^11.0.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "date-fns": "^4.1.0",
