@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { saveFCMToken } from '@/lib/fcm-token';
 
 interface NotificationPayload {
   notification?: {
@@ -35,6 +36,13 @@ export default function NotificationListener() {
     const setupListener = async () => {
       try {
         console.log('🔔 Setting up foreground notification listener...');
+
+        // Try to save FCM token for logged-in users (will check auth internally)
+        try {
+          await saveFCMToken();
+        } catch (err) {
+          console.log('ℹ️ FCM token save skipped (user may not be logged in)');
+        }
 
         // Check if permission is granted
         if (Notification.permission !== 'granted') {

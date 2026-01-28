@@ -189,13 +189,11 @@ export default function ProgramDetailPage() {
               <h2 className="text-2xl font-bold text-foreground mb-4">Program Details</h2>
 
               {program.description && (
-                <p className="text-muted-foreground mb-4 whitespace-pre-line">{program.description}</p>
+                <div className="text-muted-foreground mb-4 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: program.description }} />
               )}
 
               {program.fullDescription && (
-                <div className="text-muted-foreground mb-6 whitespace-pre-line">
-                  {program.fullDescription}
-                </div>
+                <div className="text-muted-foreground mb-6 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: program.fullDescription }} />
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
