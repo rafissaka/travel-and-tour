@@ -55,7 +55,7 @@ export default function AirportCitySearch({
 
     if (searchQuery.length >= 2) {
       setSearching(true);
-      
+
       // Debounce search to avoid too many API calls
       searchTimeout.current = setTimeout(async () => {
         try {
@@ -63,7 +63,7 @@ export default function AirportCitySearch({
             `/api/reservations/locations/search?keyword=${encodeURIComponent(searchQuery)}&type=${type}`
           );
           const data = await response.json();
-          
+
           if (data.success && data.locations) {
             setResults(data.locations.slice(0, 10)); // Limit to 10 results
             setShowResults(true);
@@ -159,10 +159,11 @@ export default function AirportCitySearch({
           <AnimatePresence>
             {showResults && results.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 w-full mt-2 bg-card border-2 border-border rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto"
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute z-50 top-full mt-3 left-0 w-full sm:min-w-[400px] bg-card backdrop-blur-md border border-border rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden max-h-[400px] overflow-y-auto scrollbar-hide"
               >
                 {results.map((location, index) => (
                   <button
@@ -213,7 +214,7 @@ export default function AirportCitySearch({
 
       {!selectedLocation && (
         <p className="text-xs text-muted-foreground mt-1">
-          {type === 'airport' 
+          {type === 'airport'
             ? 'Search by city name (e.g., "London", "Dubai", "Ghana")'
             : 'Search by city name (e.g., "London", "Paris", "Tokyo")'
           }

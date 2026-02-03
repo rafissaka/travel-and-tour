@@ -8,27 +8,28 @@ import { getAirline } from '@/lib/airlines';
 interface FlightResultsProps {
   flights: any[];
   onSelectFlight: (flight: any) => void;
+  onConfirm: () => void;
   exchangeRate: number;
 }
 
 // SVG Icons for decorative elements
 const PlaneIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth="2">
-    <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const TakeoffIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
-    <path d="M2 22h20" strokeLinecap="round"/>
-    <path d="M6.36 17.4L4 17l-2-4 1.1-.5c.5-.2 1-.1 1.4.2l1.5 1.1 3.5-1.5L6 6.9c-.2-.4-.1-.9.3-1.1l1-.6c.4-.2.9-.1 1.2.2l5.9 5.2 3.8-1.6c1-.4 2.2 0 2.6 1 .4 1 0 2.2-1 2.6L6.36 17.4z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 22h20" strokeLinecap="round" />
+    <path d="M6.36 17.4L4 17l-2-4 1.1-.5c.5-.2 1-.1 1.4.2l1.5 1.1 3.5-1.5L6 6.9c-.2-.4-.1-.9.3-1.1l1-.6c.4-.2.9-.1 1.2.2l5.9 5.2 3.8-1.6c1-.4 2.2 0 2.6 1 .4 1 0 2.2-1 2.6L6.36 17.4z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const LandingIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
-    <path d="M2 22h20" strokeLinecap="round"/>
-    <path d="M3.77 10.77L2 9l2-4.5 1.1.5c.5.2.7.8.5 1.3L4.5 9l3.5 1.5 3-5.3c.2-.4.7-.6 1.1-.4l1.1.5c.4.2.6.7.4 1.1L10.9 12l3.8 1.6c1 .4 1.5 1.6 1.1 2.6-.4 1-1.6 1.5-2.6 1.1l-9.5-6.5z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 22h20" strokeLinecap="round" />
+    <path d="M3.77 10.77L2 9l2-4.5 1.1.5c.5.2.7.8.5 1.3L4.5 9l3.5 1.5 3-5.3c.2-.4.7-.6 1.1-.4l1.1.5c.4.2.6.7.4 1.1L10.9 12l3.8 1.6c1 .4 1.5 1.6 1.1 2.6-.4 1-1.6 1.5-2.6 1.1l-9.5-6.5z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -47,7 +48,7 @@ const RouteLineIcon = () => (
   </svg>
 );
 
-export default function FlightResults({ flights, onSelectFlight, exchangeRate }: FlightResultsProps) {
+export default function FlightResults({ flights, onSelectFlight, onConfirm, exchangeRate }: FlightResultsProps) {
   const [selectedFlight, setSelectedFlight] = useState<string | null>(null);
   const [expandedFlight, setExpandedFlight] = useState<string | null>(null);
 
@@ -89,17 +90,17 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-pink-400/10 rounded-full blur-3xl" />
-        
+
         <div className="relative text-center">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mb-6 shadow-lg shadow-blue-500/25">
             <Plane className="w-12 h-12 text-white" />
           </div>
-          
+
           <h3 className="text-2xl font-bold text-foreground mb-3">No Flights Found</h3>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             We couldn't find any flights matching your search criteria. Try adjusting your dates or destinations.
           </p>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
             {[
               { icon: '📅', text: 'Try flexible dates', desc: 'Search within 2-3 months' },
@@ -121,25 +122,26 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-purple-500/10 dark:from-blue-500/5 dark:via-cyan-500/5 dark:to-purple-500/5 rounded-2xl p-5 border border-border/50">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg shadow-blue-500/25">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/20 dark:border-white/10 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-blue-500/5 to-transparent pointer-events-none" />
+        <div className="flex items-center gap-5">
+          <div className="p-4 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl shadow-xl shadow-blue-500/20 animate-float">
             <Plane className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-              {flights.length} Flight{flights.length > 1 ? 's' : ''} Available
+            <h3 className="text-2xl font-bold text-foreground tracking-tight">
+              {flights.length} Flight{flights.length > 1 ? 's' : ''} Found
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Prices in GH₵ include 10% service fee
+            <p className="text-sm text-muted-foreground font-medium">
+              Prices include all taxes and 10% service fee
             </p>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 text-sm">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
             <Shield className="w-4 h-4" />
-            <span className="font-medium">Verified Prices</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Secure Booking</span>
           </div>
         </div>
       </div>
@@ -183,18 +185,17 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
                   setExpandedFlight(isExpanded ? null : flight.id);
                   onSelectFlight(flight);
                 }}
-                className={`relative overflow-hidden bg-card rounded-2xl border-2 transition-all duration-300 cursor-pointer ${
-                  isSelected
-                    ? 'border-primary shadow-xl shadow-primary/10 ring-4 ring-primary/10'
-                    : 'border-border hover:border-primary/40 hover:shadow-lg'
-                }`}
+                className={`relative overflow-hidden bg-card rounded-3xl border-2 transition-all duration-500 cursor-pointer ${isSelected
+                  ? 'border-primary shadow-[0_20px_50px_rgba(var(--primary),0.15)] ring-8 ring-primary/5 scale-[1.01]'
+                  : 'border-border/60 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-1'
+                  }`}
               >
                 {/* Decorative Background */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full" />
-                
+
                 <div className="relative p-5 sm:p-6">
                   <div className="flex flex-col xl:flex-row xl:items-center gap-6">
-                    
+
                     {/* Left Section: Airline & Route */}
                     <div className="flex-1 space-y-5">
                       {/* Airline Info */}
@@ -220,7 +221,7 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
                             </div>
                           )}
                         </div>
-                        
+
                         <div>
                           <h4 className="font-bold text-foreground text-lg">{airline.name}</h4>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -232,11 +233,10 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
                               </>
                             )}
                           </div>
-                          <div className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            isDirect 
-                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
-                              : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                          }`}>
+                          <div className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${isDirect
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                            : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                            }`}>
                             {isDirect ? (
                               <>
                                 <CheckCircle className="w-3 h-3" />
@@ -361,21 +361,28 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
 
                         {/* Select Button - Fixed theming */}
                         <button
-                          className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                            isSelected
-                              ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/30'
-                              : 'bg-primary/10 hover:bg-primary/20 text-primary border-2 border-primary/20 hover:border-primary/40'
-                          }`}
+                          onClick={(e) => {
+                            if (isSelected) {
+                              e.stopPropagation();
+                              onConfirm();
+                            }
+                          }}
+                          className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-bold text-sm transition-all duration-500 ${isSelected
+                            ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-500/40 scale-105'
+                            : 'bg-primary/5 hover:bg-primary/10 text-primary border-2 border-primary/10 hover:border-primary/30'
+                            }`}
                         >
                           {isSelected ? (
                             <>
-                              <CheckCircle className="w-5 h-5" />
-                              <span>Selected</span>
+                              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-4 h-4 text-white" />
+                              </div>
+                              <span className="uppercase tracking-widest text-xs">Confirm & Request Quote</span>
                             </>
                           ) : (
                             <>
-                              <span>Select Flight</span>
-                              <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                              <span className="uppercase tracking-widest text-xs">Secure this Flight</span>
+                              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </>
                           )}
                         </button>
@@ -392,14 +399,14 @@ export default function FlightResults({ flights, onSelectFlight, exchangeRate }:
                         exit={{ opacity: 0, height: 0 }}
                         className="mt-5 pt-5 border-t border-border"
                       >
-                        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-900/50">
-                          <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <div className="flex items-start gap-4 p-5 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 shadow-sm">
+                          <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
+                            <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm">Next Step</p>
-                            <p className="text-blue-700 dark:text-blue-300 text-sm mt-0.5">
-                              Click "Request Quote" below to submit this flight for admin review. You'll receive payment details once approved.
+                            <p className="font-bold text-emerald-900 dark:text-emerald-50 text-base">You're one step away!</p>
+                            <p className="text-emerald-700 dark:text-emerald-300 text-sm mt-1 font-medium leading-relaxed">
+                              Click the <span className="font-bold underline">Confirm & Request Quote</span> button above or the action button at the bottom to finalize your request.
                             </p>
                           </div>
                         </div>

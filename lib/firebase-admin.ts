@@ -6,30 +6,28 @@ let isInitialized = false;
 // Lazy initialization of Firebase Admin
 async function initializeFirebaseAdmin() {
   if (isInitialized) return;
-  
+
   try {
     const admin = await import('firebase-admin');
-    
-    // Initialize Firebase Admin SDK
-    if (!admin.default.apps.length) {
-      try {
-        admin.default.initializeApp({
-          credential: admin.default.credential.cert({
-            projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          }),
-        });
-        console.log('Firebase Admin initialized successfully');
-      } catch (error) {
-        console.error('Firebase Admin initialization error:', error);
-      }
+    const adminApp = admin.apps.length === 0
+      ? admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+      })
+      : admin.apps[0];
+
+    if (adminApp) {
+      console.log('✅ Firebase Admin initialized successfully');
+      messaging = adminApp.messaging();
+      isInitialized = true;
+    } else {
+      console.error('❌ Failed to initialize Firebase Admin app');
     }
-    
-    messaging = admin.default.messaging();
-    isInitialized = true;
   } catch (error) {
-    console.warn('Firebase Admin SDK not available');
+    console.warn('⚠️ Firebase Admin SDK initialization failed:', error);
     messaging = null;
   }
 }
@@ -53,13 +51,13 @@ export async function sendPushNotification(
 ): Promise<void> {
   // Initialize Firebase Admin if not already done
   await initializeFirebaseAdmin();
-  
+
   // Check if Firebase Admin is available
   if (!messaging) {
     console.log('Firebase Admin not configured - skipping push notification');
     return;
   }
-  
+
   try {
     // Get user's active device tokens
     const deviceTokens = await prisma.device_tokens.findMany({
@@ -99,7 +97,7 @@ export async function sendPushNotification(
     // Handle failed tokens
     if (response.failureCount > 0) {
       const failedTokens: string[] = [];
-      
+
       response.responses.forEach((resp: any, idx: number) => {
         if (!resp.success) {
           console.error(`Failed to send to token ${idx}:`, resp.error);
@@ -150,13 +148,13 @@ export async function sendPushNotificationToAdmins(
 ): Promise<void> {
   // Initialize Firebase Admin if not already done
   await initializeFirebaseAdmin();
-  
+
   // Check if Firebase Admin is available
   if (!messaging) {
     console.log('Firebase Admin not configured - skipping push notification');
     return;
   }
-  
+
   try {
     // Get all admin users
     const admins = await prisma.user.findMany({
@@ -230,7 +228,7 @@ export async function subscribeToTopic(
 
     const tokens = deviceTokens.map((dt) => dt.token);
     const response = await messaging.subscribeToTopic(tokens, topic);
-    
+
     console.log(`Subscribed ${response.successCount} tokens to topic ${topic}`);
   } catch (error) {
     console.error('Error subscribing to topic:', error);
@@ -261,7 +259,7 @@ export async function unsubscribeFromTopic(
 
     const tokens = deviceTokens.map((dt) => dt.token);
     const response = await messaging.unsubscribeFromTopic(tokens, topic);
-    
+
     console.log(`Unsubscribed ${response.successCount} tokens from topic ${topic}`);
   } catch (error) {
     console.error('Error unsubscribing from topic:', error);

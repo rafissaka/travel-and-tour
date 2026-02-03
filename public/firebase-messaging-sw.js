@@ -24,8 +24,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || payload.data?.title || 'New Notification';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || 'You have a new notification',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/icon-192x192.png',
+    badge: '/badge-72x72.png',
     tag: payload.data?.notificationId || payload.data?.type || 'notification',
     data: {
       ...payload.data,
@@ -36,7 +36,8 @@ messaging.onBackgroundMessage((payload) => {
     actions: [
       {
         action: 'open',
-        title: 'Open'
+        title: 'Open',
+        icon: '/icon-96x96.png'
       },
       {
         action: 'close',
@@ -96,8 +97,8 @@ self.addEventListener('push', (event) => {
       const notificationTitle = payload.notification?.title || payload.data?.title || 'New Notification';
       const notificationOptions = {
         body: payload.notification?.body || payload.data?.body || 'You have a new notification',
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/icon-192x192.png',
+        badge: '/badge-72x72.png',
         tag: payload.data?.notificationId || payload.data?.type || 'notification',
         data: {
           ...payload.data,

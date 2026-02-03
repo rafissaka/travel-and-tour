@@ -50,14 +50,20 @@ export async function saveFCMToken(): Promise<boolean> {
       }),
     });
 
+    if (response.status === 401) {
+      console.log('ℹ️ FCM token save skipped: user not logged in');
+      return false;
+    }
+
     if (!response.ok) {
-      throw new Error('Failed to save FCM token to backend');
+      throw new Error(`Failed to save FCM token to backend (Status: ${response.status})`);
     }
 
     console.log('✅ FCM token saved successfully to backend');
     return true;
   } catch (error) {
-    console.error('Error saving FCM token:', error);
+    // Only log actual errors, not expected status codes
+    console.error('Error in saveFCMToken:', error);
     return false;
   }
 }
@@ -75,7 +81,7 @@ export async function enableNotifications(): Promise<boolean> {
     }
 
     const token = await requestNotificationPermission();
-    
+
     if (!token) {
       return false;
     }
@@ -101,11 +107,18 @@ export async function enableNotifications(): Promise<boolean> {
       }),
     });
 
-    if (response.ok) {
-      console.log('✅ FCM token saved successfully to backend');
+    if (response.status === 401) {
+      console.log('ℹ️ FCM token save skipped: user not logged in');
+      return false;
     }
 
-    return response.ok;
+    if (response.ok) {
+      console.log('✅ FCM token saved successfully to backend');
+      return true;
+    }
+
+    console.error('Failed to save FCM token to backend:', response.statusText);
+    return false;
   } catch (error) {
     console.error('Error enabling notifications:', error);
     return false;
@@ -124,7 +137,7 @@ export async function removeFCMToken(): Promise<boolean> {
     }
 
     const token = await getCurrentToken();
-    
+
     if (!token) {
       return true; // No token to remove
     }

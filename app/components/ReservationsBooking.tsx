@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plane, Hotel, Package, Calendar, MapPin, Users, Loader2, ArrowRight, Search, X, Shield, Clock, CreditCard, Globe, Sparkles, CheckCircle, Star, ArrowLeftRight, ChevronDown, Bed, UserPlus, Baby, Briefcase } from 'lucide-react';
+import { Plane, Hotel, Package, Calendar, MapPin, Users, Loader2, ArrowRight, Search, X, Shield, Clock, CreditCard, Globe, Sparkles, CheckCircle, Star, ArrowLeftRight, ChevronDown, Bed, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import FlightResults from './FlightResults';
@@ -22,7 +22,7 @@ interface ReservationsBookingProps {
 // Custom SVG Icons
 const PlaneFlightIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -44,25 +44,25 @@ const CloudIcon = ({ className }: { className?: string }) => (
 
 const TakeoffIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
-    <path d="M2 22h20" strokeLinecap="round"/>
-    <path d="M6.36 17.4L4 17l-2-4 1.1-.5c.5-.2 1-.1 1.4.2l1.5 1.1 3.5-1.5L6 6.9c-.2-.4-.1-.9.3-1.1l1-.6c.4-.2.9-.1 1.2.2l5.9 5.2 3.8-1.6c1-.4 2.2 0 2.6 1 .4 1 0 2.2-1 2.6L6.36 17.4z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 22h20" strokeLinecap="round" />
+    <path d="M6.36 17.4L4 17l-2-4 1.1-.5c.5-.2 1-.1 1.4.2l1.5 1.1 3.5-1.5L6 6.9c-.2-.4-.1-.9.3-1.1l1-.6c.4-.2.9-.1 1.2.2l5.9 5.2 3.8-1.6c1-.4 2.2 0 2.6 1 .4 1 0 2.2-1 2.6L6.36 17.4z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const LandingIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="2">
-    <path d="M2 22h20" strokeLinecap="round"/>
-    <path d="M3.77 10.77L2 9l2-4.5 1.1.5c.5.2.7.8.5 1.3L4.5 9l3.5 1.5 3-5.3c.2-.4.7-.6 1.1-.4l1.1.5c.4.2.6.7.4 1.1L10.9 12l3.8 1.6c1 .4 1.5 1.6 1.1 2.6-.4 1-1.6 1.5-2.6 1.1l-9.5-6.5z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 22h20" strokeLinecap="round" />
+    <path d="M3.77 10.77L2 9l2-4.5 1.1.5c.5.2.7.8.5 1.3L4.5 9l3.5 1.5 3-5.3c.2-.4.7-.6 1.1-.4l1.1.5c.4.2.6.7.4 1.1L10.9 12l3.8 1.6c1 .4 1.5 1.6 1.1 2.6-.4 1-1.6 1.5-2.6 1.1l-9.5-6.5z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 // Styled Input Component
-const StyledInput = ({ 
-  label, 
-  icon: Icon, 
-  type = 'text', 
-  value, 
-  onChange, 
+const StyledInput = ({
+  label,
+  icon: Icon,
+  type = 'text',
+  value,
+  onChange,
   placeholder,
   required = false,
   min,
@@ -134,66 +134,14 @@ const StyledInput = ({
   </div>
 );
 
-// Traveler Counter Component
-const TravelerCounter = ({
-  label,
-  icon: Icon,
-  value,
-  onChange,
-  min = 0,
-  max = 9,
-  description
-}: {
-  label: string;
-  icon: any;
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  max?: number;
-  description?: string;
-}) => (
-  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary" />
-      </div>
-      <div>
-        <p className="font-medium text-foreground">{label}</p>
-        {description && <p className="text-xs text-muted-foreground">{description}</p>}
-      </div>
-    </div>
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
-        disabled={value <= min}
-        className="w-9 h-9 rounded-lg border-2 border-border bg-background flex items-center justify-center font-bold text-lg transition-all hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        −
-      </button>
-      <span className="w-8 text-center font-bold text-foreground">{value}</span>
-      <button
-        type="button"
-        onClick={() => onChange(Math.min(max, value + 1))}
-        disabled={value >= max}
-        className="w-9 h-9 rounded-lg border-2 border-border bg-background flex items-center justify-center font-bold text-lg transition-all hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        +
-      </button>
-    </div>
-  </div>
-);
-
 export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: ReservationsBookingProps) {
   const [activeTab, setActiveTab] = useState<BookingType>('flights');
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [exchangeRate, setExchangeRate] = useState(12.5);
-  const [showTravelers, setShowTravelers] = useState(false);
-  const [showGuestSelector, setShowGuestSelector] = useState(false);
-  
+  const [exchangeRate, setExchangeRate] = useState(10.93);
+
   // Package booking state
   const [packageStep, setPackageStep] = useState<PackageStep>('select_type');
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
@@ -318,7 +266,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
   const totalGuests = hotelForm.adults + hotelForm.children;
 
   const tabs = [
-{ id: 'flights' as BookingType, label: 'Flights', icon: Plane, color: 'from-blue-600 to-cyan-500', bgColor: 'bg-blue-500' },
+    { id: 'flights' as BookingType, label: 'Flights', icon: Plane, color: 'from-blue-600 to-cyan-500', bgColor: 'bg-blue-500' },
     { id: 'hotels' as BookingType, label: 'Hotels', icon: Hotel, color: 'from-purple-600 to-pink-500', bgColor: 'bg-purple-500' },
     { id: 'package' as BookingType, label: 'Flight + Hotel', icon: Package, color: 'from-orange-500 to-amber-500', bgColor: 'bg-orange-500' },
   ];
@@ -346,7 +294,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
           <div className="absolute -right-20 -top-20 w-96 h-96 text-white">
             <GlobeIcon />
           </div>
-          
+
           <div className="absolute top-10 left-10 w-32 h-20 text-white animate-pulse">
             <CloudIcon />
           </div>
@@ -356,7 +304,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
           <div className="absolute bottom-20 left-1/4 w-28 h-16 text-white animate-pulse" style={{ animationDelay: '2s' }}>
             <CloudIcon />
           </div>
-          
+
           <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
             <defs>
               <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -365,26 +313,26 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 <stop offset="100%" stopColor="white" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path 
-              d="M-50 200 Q200 100 400 150 T800 100" 
-              fill="none" 
-              stroke="url(#pathGradient)" 
-              strokeWidth="2" 
+            <path
+              d="M-50 200 Q200 100 400 150 T800 100"
+              fill="none"
+              stroke="url(#pathGradient)"
+              strokeWidth="2"
               strokeDasharray="10 5"
             />
           </svg>
-          
-          <motion.div 
+
+          <motion.div
             className="absolute w-16 h-16 text-white/80"
             initial={{ x: -100, y: 200 }}
-            animate={{ 
+            animate={{
               x: ['-10%', '110%'],
               y: ['60%', '30%', '40%', '20%']
             }}
-            transition={{ 
-              duration: 20, 
-              repeat: Infinity, 
-              ease: "linear" 
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
             }}
           >
             <PlaneFlightIcon />
@@ -394,7 +342,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
         {/* Hero Content */}
         <div className="relative z-10 px-6 sm:px-10 py-12 sm:py-16">
           <div className="max-w-4xl">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6"
@@ -403,7 +351,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
               <span className="text-white/90 text-sm font-medium">Best Prices Guaranteed</span>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -415,7 +363,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
               </span>
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -424,7 +372,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
               Search and compare flights, hotels, and vacation packages from hundreds of providers.
             </motion.p>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -433,7 +381,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div 
+                  <div
                     key={index}
                     className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10"
                   >
@@ -455,8 +403,8 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                   </linearGradient>
                 </defs>
                 <g transform="translate(20, 40) rotate(-15)">
-                  <path 
-                    d="M140 60 L120 55 L80 75 L30 65 L25 70 L70 90 L60 110 L45 110 L40 120 L60 115 L70 105 L85 130 L95 130 L90 100 L130 80 L140 85 L145 80 L140 60Z" 
+                  <path
+                    d="M140 60 L120 55 L80 75 L30 65 L25 70 L70 90 L60 110 L45 110 L40 120 L60 115 L70 105 L85 130 L95 130 L90 100 L130 80 L140 85 L145 80 L140 60Z"
                     fill="url(#planeGradient)"
                   />
                   <circle cx="95" cy="80" r="3" fill="rgba(59, 130, 246, 0.5)" />
@@ -471,8 +419,8 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
       </div>
 
       {/* Tab Selection - Modern Style */}
-      <div className="bg-card rounded-2xl border border-border p-2 mb-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-2">
+      <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/10 p-2 mb-8 shadow-2xl relative z-10 mx-auto max-w-2xl">
+        <div className="flex flex-row gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -484,27 +432,38 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                   setSearchResults(null);
                   setSelectedItem(null);
                 }}
-                className={`flex-1 relative flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 ${
-                  isActive
-                    ? 'text-white shadow-lg'
-                    : 'text-muted-foreground hover:bg-muted/50'
-                }`}
+                className={`flex-1 relative flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl font-bold transition-all duration-500 overflow-hidden ${isActive
+                  ? 'text-white'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className={`absolute inset-0 bg-gradient-to-r ${tab.color} rounded-xl`}
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className={`absolute inset-0 bg-gradient-to-r ${tab.color} rounded-xl shadow-lg shadow-blue-500/20`}
+                    transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
                   />
                 )}
-                <span className="relative flex items-center gap-3">
-                  <Icon className="w-5 h-5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="relative flex items-center gap-2.5">
+                  <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} />
+                  <span className="text-sm tracking-tight">{tab.label}</span>
                 </span>
+                {isActive && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -right-1 -top-1 w-3 h-3 bg-white/40 rounded-full blur-sm"
+                  />
+                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Exchange Rate Badge */}
+        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 bg-background/95 backdrop-blur-xl border border-border rounded-full shadow-lg text-[10px] font-bold text-muted-foreground whitespace-nowrap z-20">
+          <Globe className="w-3 h-3 text-emerald-500" />
+          <span>Live Rate: 1 USD = GH₵ {exchangeRate.toFixed(2)}</span>
         </div>
       </div>
 
@@ -518,16 +477,27 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
+            <div className="bg-card rounded-[2rem] border border-border shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative z-20">
               {/* Form Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <Plane className="w-7 h-7 text-white" />
-                  </div>
+              <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 px-8 py-8 relative overflow-hidden rounded-t-[2rem]">
+                {/* Decorative Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M0 100 L100 0 L100 100 Z" fill="currentColor" />
+                  </svg>
+                </div>
+
+                <div className="relative flex items-center gap-6">
+                  <motion.div
+                    initial={{ rotate: -15, scale: 0.8 }}
+                    animate={{ rotate: 0, scale: 1 }}
+                    className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner"
+                  >
+                    <Plane className="w-8 h-8 text-white" />
+                  </motion.div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Search Flights</h3>
-                    <p className="text-sm text-white/80">Find the best deals on airfare worldwide</p>
+                    <h3 className="text-2xl font-bold text-white tracking-tight">Search Flights</h3>
+                    <p className="text-white/80 font-medium">Global destinations, local prices (GH₵)</p>
                   </div>
                 </div>
               </div>
@@ -633,65 +603,18 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 {/* Travelers & Class Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Travelers Dropdown */}
-                  <div className="relative">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
-                      <Users className="w-4 h-4 text-primary" />
-                      Travelers
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowTravelers(!showTravelers)}
-                      className="w-full px-4 py-3.5 rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all hover:border-primary/50 text-left flex items-center justify-between"
-                    >
-                      <span>
-                        {totalTravelers} Traveler{totalTravelers > 1 ? 's' : ''}
-                        {flightForm.children > 0 && `, ${flightForm.children} child`}
-                        {flightForm.infants > 0 && `, ${flightForm.infants} infant`}
-                      </span>
-                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showTravelers ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    <AnimatePresence>
-                      {showTravelers && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute top-full left-0 right-0 mt-2 p-4 bg-card rounded-xl border border-border shadow-xl z-50 space-y-3"
-                        >
-                          <TravelerCounter
-                            label="Adults"
-                            icon={Users}
-                            value={flightForm.adults}
-                            onChange={(value) => setFlightForm({ ...flightForm, adults: value })}
-                            min={1}
-                            description="Age 12+"
-                          />
-                          <TravelerCounter
-                            label="Children"
-                            icon={UserPlus}
-                            value={flightForm.children}
-                            onChange={(value) => setFlightForm({ ...flightForm, children: value })}
-                            description="Age 2-11"
-                          />
-                          <TravelerCounter
-                            label="Infants"
-                            icon={Baby}
-                            value={flightForm.infants}
-                            onChange={(value) => setFlightForm({ ...flightForm, infants: value })}
-                            description="Under 2"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowTravelers(false)}
-                            className="w-full py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                          >
-                            Done
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <TravelerSelector
+                    adults={flightForm.adults}
+                    children={flightForm.children}
+                    infants={flightForm.infants}
+                    onAdultsChange={(value) => setFlightForm({ ...flightForm, adults: value })}
+                    onChildrenChange={(value) => setFlightForm({ ...flightForm, children: value })}
+                    onInfantsChange={(value) => setFlightForm({ ...flightForm, infants: value })}
+                    showChildren={true}
+                    showInfants={true}
+                    label="Travelers"
+                    icon={Users}
+                  />
 
                   {/* Cabin Class */}
                   <div>
@@ -745,16 +668,27 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
+            <div className="bg-card rounded-[2rem] border border-border shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative z-20">
               {/* Form Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <Hotel className="w-7 h-7 text-white" />
-                  </div>
+              <div className="bg-gradient-to-r from-purple-700 via-purple-600 to-pink-500 px-8 py-8 relative overflow-hidden rounded-t-[2rem]">
+                {/* Decorative Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <circle cx="100" cy="0" r="50" fill="currentColor" />
+                  </svg>
+                </div>
+
+                <div className="relative flex items-center gap-6">
+                  <motion.div
+                    initial={{ rotate: 15, scale: 0.8 }}
+                    animate={{ rotate: 0, scale: 1 }}
+                    className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner"
+                  >
+                    <Hotel className="w-8 h-8 text-white" />
+                  </motion.div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Search Hotels</h3>
-                    <p className="text-sm text-white/80">Find perfect accommodation for your stay</p>
+                    <h3 className="text-2xl font-bold text-white tracking-tight">Search Hotels</h3>
+                    <p className="text-white/80 font-medium">World-class stays at your fingertips</p>
                   </div>
                 </div>
               </div>
@@ -814,57 +748,16 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 {/* Guests & Rooms Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Guests Dropdown */}
-                  <div className="relative">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
-                      <Users className="w-4 h-4 text-primary" />
-                      Guests
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowGuestSelector(!showGuestSelector)}
-                      className="w-full px-4 py-3.5 rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all hover:border-primary/50 text-left flex items-center justify-between"
-                    >
-                      <span>
-                        {totalGuests} Guest{totalGuests > 1 ? 's' : ''}
-                        {hotelForm.children > 0 && `, ${hotelForm.children} child`}
-                      </span>
-                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showGuestSelector ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    <AnimatePresence>
-                      {showGuestSelector && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute top-full left-0 right-0 mt-2 p-4 bg-card rounded-xl border border-border shadow-xl z-50 space-y-3"
-                        >
-                          <TravelerCounter
-                            label="Adults"
-                            icon={Users}
-                            value={hotelForm.adults}
-                            onChange={(value) => setHotelForm({ ...hotelForm, adults: value })}
-                            min={1}
-                            description="Age 18+"
-                          />
-                          <TravelerCounter
-                            label="Children"
-                            icon={UserPlus}
-                            value={hotelForm.children}
-                            onChange={(value) => setHotelForm({ ...hotelForm, children: value })}
-                            description="Age 0-17"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowGuestSelector(false)}
-                            className="w-full py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                          >
-                            Done
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <TravelerSelector
+                    adults={hotelForm.adults}
+                    children={hotelForm.children}
+                    onAdultsChange={(value) => setHotelForm({ ...hotelForm, adults: value })}
+                    onChildrenChange={(value) => setHotelForm({ ...hotelForm, children: value })}
+                    showChildren={true}
+                    showInfants={false}
+                    label="Guests"
+                    icon={Users}
+                  />
 
                   {/* Rooms */}
                   <div>
@@ -920,9 +813,9 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
           >
             {/* Step 1: Choose starting point */}
             {packageStep === 'select_type' && (
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
+              <div className="bg-card rounded-2xl border border-border shadow-lg">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-8 text-center">
+                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-8 text-center rounded-t-2xl relative overflow-hidden">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
                     <Package className="w-10 h-10 text-white" />
                   </div>
@@ -936,12 +829,12 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="p-6 sm:p-8">
                   <p className="text-center text-muted-foreground mb-8 text-lg">
                     Book your flight and hotel together for the best savings.
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                     <button
                       onClick={() => {
@@ -961,7 +854,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                         </p>
                       </div>
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         setPackageStartsWith('hotel');
@@ -1022,8 +915,8 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 </div>
 
                 {!searchResults ? (
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-5">
+                  <div className="bg-card rounded-2xl border border-border shadow-lg relative z-20">
+                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-5 rounded-t-2xl">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                           <Plane className="w-7 h-7 text-white" />
@@ -1124,18 +1017,23 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                         setSelectedFlight(flight);
                         setSelectedItem(flight);
                       }}
+                      onConfirm={() => {
+                        setPackageStep('select_hotel');
+                        setSearchResults(null);
+                        setSelectedItem(null);
+                      }}
                       exchangeRate={exchangeRate}
                     />
-                    
+
                     {selectedFlight && (
                       <div className="sticky bottom-6 flex justify-center">
                         <button
                           onClick={() => {
                             const arrivalDate = new Date(flightForm.departureDate);
-                            const departureDate = flightForm.returnDate 
+                            const departureDate = flightForm.returnDate
                               ? new Date(flightForm.returnDate)
                               : new Date(arrivalDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-                            
+
                             setHotelForm({
                               ...hotelForm,
                               cityCode: flightForm.destination,
@@ -1197,8 +1095,8 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 </div>
 
                 {!searchResults ? (
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
-                    <div className="bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-5">
+                  <div className="bg-card rounded-2xl border border-border shadow-lg relative z-20">
+                    <div className="bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-5 rounded-t-2xl">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                           <Hotel className="w-7 h-7 text-white" />
@@ -1248,6 +1146,8 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                           onChildrenChange={(value) => setHotelForm({ ...hotelForm, children: value })}
                           showChildren={true}
                           showInfants={false}
+                          label="Guests"
+                          icon={Users}
                         />
                         <StyledInput
                           label="Rooms"
@@ -1286,11 +1186,12 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                         setSelectedHotel(hotel);
                         setSelectedItem(hotel);
                       }}
+                      onConfirm={() => setPackageStep('review')}
                       exchangeRate={exchangeRate}
                       checkInDate={hotelForm.checkInDate}
                       checkOutDate={hotelForm.checkOutDate}
                     />
-                    
+
                     {selectedHotel && (
                       <div className="sticky bottom-6 flex justify-center">
                         <button
@@ -1372,7 +1273,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                     const subtotal = flightTotal + hotelTotal;
                     const discount = subtotal * 0.05;
                     const total = subtotal - discount;
-                    
+
                     return (
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
@@ -1435,6 +1336,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
             <FlightResults
               flights={searchResults.flights}
               onSelectFlight={setSelectedItem}
+              onConfirm={() => isLoggedIn ? setShowQuoteModal(true) : onLoginRequired()}
               exchangeRate={exchangeRate}
             />
           )}
@@ -1443,6 +1345,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
             <HotelResults
               hotels={searchResults.hotels}
               onSelectHotel={setSelectedItem}
+              onConfirm={() => isLoggedIn ? setShowQuoteModal(true) : onLoginRequired()}
               exchangeRate={exchangeRate}
               checkInDate={hotelForm.checkInDate}
               checkOutDate={hotelForm.checkOutDate}
