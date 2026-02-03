@@ -39,8 +39,8 @@ async function isAdminOnline(): Promise<{ online: boolean; adminId?: string }> {
 async function generateAIResponse(userMessage: string, conversationHistory: any[]): Promise<string> {
   try {
     console.log('Generating AI response for message:', userMessage);
-    console.log('Using Gemini API Key:', process.env.GEMINI_API_KEY ? 'Key is set' : 'Key is missing');
-    
+    // console.log('Using Gemini API Key:', process.env.GEMINI_API_KEY ? 'Key is set' : 'Key is missing');
+
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Build context about the business

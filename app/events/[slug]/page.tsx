@@ -6,6 +6,7 @@ import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
 import { Calendar, MapPin, Clock, Users, DollarSign, CheckCircle, Loader2, ArrowLeft, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Mail, X, User, Phone, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sanitizeHtml } from "@/lib/sanitize";
 import Link from 'next/link';
 import { toast } from 'sonner';
 import ConsultationForm from '@/app/components/ConsultationForm';
@@ -363,7 +364,7 @@ export default function EventDetailPage() {
                     <h2 className="text-2xl font-bold text-foreground mb-4">About This Event</h2>
                     <div
                       className="prose prose-lg max-w-none text-muted-foreground prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground"
-                      dangerouslySetInnerHTML={{ __html: event.description }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.description) }}
                     />
                   </motion.div>
                 )}
@@ -456,12 +457,11 @@ export default function EventDetailPage() {
                 >
                   {/* Status Badge */}
                   <div className="flex justify-center">
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                      event.status === 'UPCOMING' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                      event.status === 'ONGOING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                      event.status === 'ENDED' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' :
-                      'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
+                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${event.status === 'UPCOMING' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
+                        event.status === 'ONGOING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
+                          event.status === 'ENDED' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                      }`}>
                       {event.status}
                     </span>
                   </div>
@@ -544,11 +544,10 @@ export default function EventDetailPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`bg-card rounded-2xl shadow-2xl ${
-                  (event?.service?.slug === 'family-travel' || event?.service?.slug === 'tours')
+                className={`bg-card rounded-2xl shadow-2xl ${(event?.service?.slug === 'family-travel' || event?.service?.slug === 'tours')
                     ? 'max-w-5xl'
                     : 'max-w-2xl'
-                } w-full max-h-[90vh] overflow-y-auto`}
+                  } w-full max-h-[90vh] overflow-y-auto`}
               >
                 {/* Modal Header */}
                 <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
@@ -578,183 +577,181 @@ export default function EventDetailPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
-                  {/* Participants */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">
-                      Number of Participants *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={event?.maxParticipants ? event.maxParticipants - event.currentParticipants : 100}
-                      value={bookingData.participants || 1}
-                      onChange={(e) => setBookingData({ ...bookingData, participants: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
-
-                  {/* Price Breakdown */}
-                  {event?.price && (
-                    <div className="bg-muted/30 rounded-xl p-4 space-y-2">
-                      <h3 className="font-semibold text-foreground mb-3">Price Breakdown</h3>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Price per person</span>
-                        <span className="font-medium text-foreground">GH₵ {Number(event.price).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Participants</span>
-                        <span className="font-medium text-foreground">× {bookingData.participants}</span>
-                      </div>
-                      <div className="flex justify-between text-sm pt-2 border-t border-border">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-medium text-foreground">GH₵ {totalPrice.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Service fee (2%)</span>
-                        <span className="font-medium text-foreground">GH₵ {(totalPrice * 0.02).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
-                        <span className="text-foreground">Total</span>
-                        <span className="text-primary">GH₵ {(totalPrice * 1.02).toFixed(2)}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Full Name */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">
-                      Full Name *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    {/* Participants */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-2">
+                        Number of Participants *
+                      </label>
                       <input
-                        type="text"
-                        value={bookingData.fullName}
-                        onChange={(e) => setBookingData({ ...bookingData, fullName: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="John Doe"
+                        type="number"
+                        min="1"
+                        max={event?.maxParticipants ? event.maxParticipants - event.currentParticipants : 100}
+                        value={bookingData.participants || 1}
+                        onChange={(e) => setBookingData({ ...bookingData, participants: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         required
                       />
                     </div>
-                  </div>
 
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">
-                      Email Address *
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type="email"
-                        value={bookingData.email}
-                        onChange={(e) => setBookingData({ ...bookingData, email: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="john@example.com"
-                        required
-                      />
+                    {/* Price Breakdown */}
+                    {event?.price && (
+                      <div className="bg-muted/30 rounded-xl p-4 space-y-2">
+                        <h3 className="font-semibold text-foreground mb-3">Price Breakdown</h3>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Price per person</span>
+                          <span className="font-medium text-foreground">GH₵ {Number(event.price).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Participants</span>
+                          <span className="font-medium text-foreground">× {bookingData.participants}</span>
+                        </div>
+                        <div className="flex justify-between text-sm pt-2 border-t border-border">
+                          <span className="text-muted-foreground">Subtotal</span>
+                          <span className="font-medium text-foreground">GH₵ {totalPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Service fee (2%)</span>
+                          <span className="font-medium text-foreground">GH₵ {(totalPrice * 0.02).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
+                          <span className="text-foreground">Total</span>
+                          <span className="text-primary">GH₵ {(totalPrice * 1.02).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-2">
+                        Full Name *
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={bookingData.fullName}
+                          onChange={(e) => setBookingData({ ...bookingData, fullName: e.target.value })}
+                          className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          placeholder="John Doe"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">
-                      Phone Number *
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type="tel"
-                        value={bookingData.phone}
-                        onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="+1 234 567 8900"
-                        required
-                      />
+                    {/* Email */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-2">
+                        Email Address *
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <input
+                          type="email"
+                          value={bookingData.email}
+                          onChange={(e) => setBookingData({ ...bookingData, email: e.target.value })}
+                          className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          placeholder="john@example.com"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Special Requests */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">
-                      Special Requests (Optional)
-                    </label>
-                    <div className="relative">
-                      <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
-                      <textarea
-                        value={bookingData.specialRequests}
-                        onChange={(e) => setBookingData({ ...bookingData, specialRequests: e.target.value })}
-                        rows={4}
-                        className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
-                        placeholder="Any dietary restrictions, accessibility needs, etc."
-                      />
+                    {/* Phone */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-2">
+                        Phone Number *
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <input
+                          type="tel"
+                          value={bookingData.phone}
+                          onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
+                          className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          placeholder="+1 234 567 8900"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Payment Option */}
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-3">
-                      Payment Option *
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Special Requests */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-2">
+                        Special Requests (Optional)
+                      </label>
+                      <div className="relative">
+                        <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                        <textarea
+                          value={bookingData.specialRequests}
+                          onChange={(e) => setBookingData({ ...bookingData, specialRequests: e.target.value })}
+                          rows={4}
+                          className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                          placeholder="Any dietary restrictions, accessibility needs, etc."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Payment Option */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-3">
+                        Payment Option *
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_NOW' })}
+                          className={`p-4 border-2 rounded-xl transition-all ${bookingData.paymentOption === 'PAY_NOW'
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border hover:border-primary/50'
+                            }`}
+                        >
+                          <DollarSign className="w-6 h-6 mx-auto mb-2" />
+                          <div className="font-semibold">Pay Now</div>
+                          <div className="text-xs text-muted-foreground mt-1">Secure payment</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_LATER' })}
+                          className={`p-4 border-2 rounded-xl transition-all ${bookingData.paymentOption === 'PAY_LATER'
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border hover:border-primary/50'
+                            }`}
+                        >
+                          <Clock className="w-6 h-6 mx-auto mb-2" />
+                          <div className="font-semibold">Pay Later</div>
+                          <div className="text-xs text-muted-foreground mt-1">Reserve now</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="flex gap-4">
                       <button
                         type="button"
-                        onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_NOW' })}
-                        className={`p-4 border-2 rounded-xl transition-all ${
-                          bookingData.paymentOption === 'PAY_NOW'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border hover:border-primary/50'
-                        }`}
+                        onClick={() => setShowBookingModal(false)}
+                        className="flex-1 px-6 py-3 border-2 border-border rounded-xl font-semibold text-foreground hover:bg-muted transition-all"
                       >
-                        <DollarSign className="w-6 h-6 mx-auto mb-2" />
-                        <div className="font-semibold">Pay Now</div>
-                        <div className="text-xs text-muted-foreground mt-1">Secure payment</div>
+                        Cancel
                       </button>
                       <button
-                        type="button"
-                        onClick={() => setBookingData({ ...bookingData, paymentOption: 'PAY_LATER' })}
-                        className={`p-4 border-2 rounded-xl transition-all ${
-                          bookingData.paymentOption === 'PAY_LATER'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border hover:border-primary/50'
-                        }`}
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <Clock className="w-6 h-6 mx-auto mb-2" />
-                        <div className="font-semibold">Pay Later</div>
-                        <div className="text-xs text-muted-foreground mt-1">Reserve now</div>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-5 h-5" />
+                            {bookingData.paymentOption === 'PAY_NOW' ? 'Proceed to Payment' : 'Confirm Booking'}
+                          </>
+                        )}
                       </button>
                     </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowBookingModal(false)}
-                      className="flex-1 px-6 py-3 border-2 border-border rounded-xl font-semibold text-foreground hover:bg-muted transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-5 h-5" />
-                          {bookingData.paymentOption === 'PAY_NOW' ? 'Proceed to Payment' : 'Confirm Booking'}
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                  </form>
                 )}
               </motion.div>
             </div>

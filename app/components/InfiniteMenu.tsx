@@ -1,6 +1,8 @@
 'use client';
 
 import { FC, useRef, useState, useEffect, MutableRefObject } from 'react';
+import { ChevronRight, ArrowRight, Loader2 } from 'lucide-react';
+import { sanitizeHtml } from "@/lib/sanitize";
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 const discVertShaderSource = `#version 300 es
@@ -744,7 +746,7 @@ class InfiniteGridMenu {
 
   public run(time = 0): void {
     if (!this.gl) return; // Don't run animation loop if WebGL isn't initialized
-    
+
     this._deltaTime = Math.min(32, time - this._time);
     this._time = time;
     this._deltaFrames = this._deltaTime / this.TARGET_FRAME_DURATION;
@@ -1088,7 +1090,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
 
   useEffect(() => {
     if (!isMounted) return;
-    
+
     const canvas = canvasRef.current;
     let sketch: InfiniteGridMenu | null = null;
 
@@ -1154,7 +1156,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
   if (!webglSupported) {
     const displayItems = items.length ? items : defaultItems;
     const currentItem = activeItem || displayItems[0];
-    
+
     return (
       <div className="relative w-full h-full bg-background flex items-center justify-center">
         <div className="text-center p-8 max-w-2xl">
@@ -1170,9 +1172,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           {currentItem && (
             <div className="mt-8 p-6 bg-secondary/20 rounded-lg">
               <h4 className="text-2xl font-bold text-foreground mb-3">{currentItem.title}</h4>
-              <div 
+              <div
                 className="text-muted-foreground prose prose-sm prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: currentItem.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentItem.description) }}
               />
               {currentItem.link && (
                 <button
@@ -1221,11 +1223,10 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           max-w-[45%]
           transition-all
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms]'
-              : 'opacity-100 pointer-events-auto duration-[500ms]'
-          }
+          ${isMoving
+                ? 'opacity-0 pointer-events-none duration-[100ms]'
+                : 'opacity-100 pointer-events-auto duration-[500ms]'
+              }
         `}
           >
             {activeItem.title}
@@ -1254,13 +1255,12 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           prose-strong:text-white prose-strong:font-semibold
           line-clamp-6
           overflow-hidden
-          ${
-            isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms]'
-              : 'opacity-100 pointer-events-auto duration-[500ms]'
-          }
+          ${isMoving
+                ? 'opacity-0 pointer-events-none duration-[100ms]'
+                : 'opacity-100 pointer-events-auto duration-[500ms]'
+              }
         `}
-            dangerouslySetInnerHTML={{ __html: activeItem.description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeItem.description) }}
           />
 
           <div
@@ -1281,11 +1281,10 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           cursor-pointer
           transition-all
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
-              : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
-          }
+          ${isMoving
+                ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
+                : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
+              }
         `}
           >
             <p className="select-none relative text-white top-[2px] text-[26px]">&#x2197;</p>

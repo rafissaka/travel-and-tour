@@ -38,13 +38,13 @@ export async function POST(request: Request) {
           updated_at: new Date(),
         },
       });
-      
-      console.log('='.repeat(80));
-      console.log(`📱 UPDATED FCM TOKEN for user: ${user.email} (ID: ${user.id})`);
-      console.log('='.repeat(80));
-      console.log(token);
-      console.log('='.repeat(80));
-      
+
+      // console.log('='.repeat(80));
+      // console.log(`📱 UPDATED FCM TOKEN for user: ${user.email} (ID: ${user.id})`);
+      // console.log('='.repeat(80));
+      // console.log(token);
+      // console.log('='.repeat(80));
+
       return NextResponse.json(updatedToken);
     }
 
@@ -60,14 +60,14 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log('='.repeat(80));
-    console.log(`📱 NEW FCM TOKEN for user: ${user.email} (ID: ${user.id})`);
-    console.log('='.repeat(80));
-    console.log(token);
-    console.log('='.repeat(80));
-    console.log('Copy this token to test in Firebase Console > Cloud Messaging > Send test message');
-    console.log('='.repeat(80));
-    
+    // console.log('='.repeat(80));
+    // console.log(`📱 NEW FCM TOKEN for user: ${user.email} (ID: ${user.id})`);
+    // console.log('='.repeat(80));
+    // console.log(token);
+    // console.log('='.repeat(80));
+    // console.log('Copy this token to test in Firebase Console > Cloud Messaging > Send test message');
+    // console.log('='.repeat(80));
+
     return NextResponse.json(deviceToken, { status: 201 });
   } catch (error) {
     console.error('Error saving device token:', error);

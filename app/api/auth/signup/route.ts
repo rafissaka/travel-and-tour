@@ -15,17 +15,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'Password must be at least 8 characters' },
         { status: 400 }
       );
     }
 
     // Debug: Check environment variables
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    console.log('Supabase Key preview:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + '...');
+    // Debug: Check environment variables (Safe logging)
+    console.log('Supabase URL configured:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Supabase Key configured:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
     const supabase = await createClient();
 

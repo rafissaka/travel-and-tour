@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
-import { CheckCircle2, Loader2, ArrowLeft, Star, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Mail, GraduationCap, Calendar, MapPin, Building2, ArrowRight, X, Eye, Clock, AlertCircle, Sparkles, Shield } from 'lucide-react';
+import { CheckCircle2, Loader2, ArrowLeft, Star, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Mail, GraduationCap, Calendar, MapPin, Building2, ArrowRight, X, Eye, Clock, AlertCircle, Sparkles, Shield, ChevronRight, ShieldCheck, CreditCard, MessageCircle } from 'lucide-react';
+import { sanitizeHtml } from "@/lib/sanitize";
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import ConsultationForm from '@/app/components/ConsultationForm';
@@ -503,7 +504,7 @@ export default function ServiceDetailPage() {
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 md:mb-6">Service Details</h2>
                     <div
                       className="prose prose-sm md:prose-lg max-w-none text-muted-foreground prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-li:text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: service.fullDescription }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(service.fullDescription) }}
                     />
                   </motion.div>
                 )}
@@ -950,7 +951,7 @@ export default function ServiceDetailPage() {
                   {selectedProgram.fullDescription ? (
                     <div
                       className="prose prose-sm max-w-none text-muted-foreground prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-li:text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: selectedProgram.fullDescription }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedProgram.fullDescription) }}
                     />
                   ) : (
                     <p className="text-muted-foreground leading-relaxed">

@@ -5,6 +5,7 @@ import { Calendar, Upload, X, Check, Loader2, Trash2, Star, MapPin, Clock, Users
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { toast } from 'sonner';
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface Event {
   id: string;
@@ -78,44 +79,40 @@ export default function EventsAdminPage() {
       <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-muted/30">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('bold')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('bold')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Bold
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('italic')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('italic')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Italic
         </button>
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('bulletList')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('bulletList')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Bullets
         </button>
         <button
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('orderedList')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('orderedList')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Numbers
@@ -380,11 +377,10 @@ export default function EventsAdminPage() {
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+            ? 'border-primary bg-primary/5'
+            : 'border-border hover:border-primary/50'
+            }`}
         >
           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-foreground font-medium mb-2">
@@ -747,12 +743,11 @@ export default function EventsAdminPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        event.status === 'UPCOMING' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${event.status === 'UPCOMING' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
                         event.status === 'ONGOING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                        event.status === 'ENDED' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' :
-                        'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
+                          event.status === 'ENDED' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                        }`}>
                         {event.status}
                       </span>
                       {event.category && (
@@ -765,7 +760,7 @@ export default function EventsAdminPage() {
                     {event.description && (
                       <div
                         className="text-sm text-muted-foreground line-clamp-2"
-                        dangerouslySetInnerHTML={{ __html: event.description }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.description) }}
                       />
                     )}
                   </div>
@@ -813,11 +808,10 @@ export default function EventsAdminPage() {
                         <button
                           key={page}
                           onClick={() => paginate(page)}
-                          className={`w-10 h-10 rounded-lg transition-colors ${
-                            currentPage === page
-                              ? 'bg-primary text-white'
-                              : 'border border-border text-foreground hover:bg-muted'
-                          }`}
+                          className={`w-10 h-10 rounded-lg transition-colors ${currentPage === page
+                            ? 'bg-primary text-white'
+                            : 'border border-border text-foreground hover:bg-muted'
+                            }`}
                         >
                           {page}
                         </button>

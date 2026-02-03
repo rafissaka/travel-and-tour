@@ -5,6 +5,7 @@ import { Image, Upload, X, Check, Loader2, Trash2, Star } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { toast } from 'sonner';
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface GalleryImage {
   id: string;
@@ -54,44 +55,40 @@ export default function GalleryPage() {
       <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-muted/30">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('bold')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('bold')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Bold
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('italic')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('italic')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Italic
         </button>
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('bulletList')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('bulletList')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Bullets
         </button>
         <button
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            editor.isActive('orderedList')
-              ? 'bg-primary text-white'
-              : 'bg-background hover:bg-muted text-foreground'
-          }`}
+          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${editor.isActive('orderedList')
+            ? 'bg-primary text-white'
+            : 'bg-background hover:bg-muted text-foreground'
+            }`}
           type="button"
         >
           Numbers
@@ -329,11 +326,10 @@ export default function GalleryPage() {
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+            ? 'border-primary bg-primary/5'
+            : 'border-border hover:border-primary/50'
+            }`}
         >
           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-foreground font-medium mb-2">
@@ -483,106 +479,105 @@ export default function GalleryPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {currentImages.map((image) => (
-              <div key={image.id} className="group relative bg-background rounded-lg overflow-hidden border border-border">
-                <div className="aspect-square relative">
-                  <img
-                    src={image.imageUrl}
-                    alt={image.title || 'Gallery image'}
-                    className="w-full h-full object-cover"
-                  />
-                  {image.isFeatured && (
-                    <div className="absolute top-2 left-2 bg-amber-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-current" />
-                      Featured
+                <div key={image.id} className="group relative bg-background rounded-lg overflow-hidden border border-border">
+                  <div className="aspect-square relative">
+                    <img
+                      src={image.imageUrl}
+                      alt={image.title || 'Gallery image'}
+                      className="w-full h-full object-cover"
+                    />
+                    {image.isFeatured && (
+                      <div className="absolute top-2 left-2 bg-amber-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-current" />
+                        Featured
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => toggleFeatured(image)}
+                        className="p-2 bg-white text-foreground rounded-lg hover:bg-gray-100 transition-colors"
+                        title={image.isFeatured ? 'Remove from featured' : 'Add to featured'}
+                      >
+                        <Star className={`w-5 h-5 ${image.isFeatured ? 'fill-amber-500 text-amber-500' : ''}`} />
+                      </button>
+                      <button
+                        onClick={() => openDeleteDialog(image.id)}
+                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        title="Delete image"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => toggleFeatured(image)}
-                      className="p-2 bg-white text-foreground rounded-lg hover:bg-gray-100 transition-colors"
-                      title={image.isFeatured ? 'Remove from featured' : 'Add to featured'}
-                    >
-                      <Star className={`w-5 h-5 ${image.isFeatured ? 'fill-amber-500 text-amber-500' : ''}`} />
-                    </button>
-                    <button
-                      onClick={() => openDeleteDialog(image.id)}
-                      className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      title="Delete image"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-semibold text-foreground truncate">
+                      {image.title || 'Untitled'}
+                    </h3>
+                    {image.category && (
+                      <p className="text-xs text-muted-foreground mt-1">{image.category}</p>
+                    )}
+                    {image.description && (
+                      <div
+                        className="text-sm text-muted-foreground mt-2 line-clamp-2"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(image.description) }}
+                      />
+                    )}
                   </div>
                 </div>
-                <div className="p-3">
-                  <h3 className="font-semibold text-foreground truncate">
-                    {image.title || 'Untitled'}
-                  </h3>
-                  {image.category && (
-                    <p className="text-xs text-muted-foreground mt-1">{image.category}</p>
-                  )}
-                  {image.description && (
-                    <div
-                      className="text-sm text-muted-foreground mt-2 line-clamp-2"
-                      dangerouslySetInnerHTML={{ __html: image.description }}
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
 
-              <div className="flex gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                  // Show first page, last page, current page, and pages around current
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => paginate(page)}
-                        className={`w-10 h-10 rounded-lg transition-colors ${
-                          currentPage === page
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => paginate(page)}
+                          className={`w-10 h-10 rounded-lg transition-colors ${currentPage === page
                             ? 'bg-primary text-white'
                             : 'border border-border text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return (
-                      <span key={page} className="w-10 h-10 flex items-center justify-center text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
+                            }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return (
+                        <span key={page} className="w-10 h-10 flex items-center justify-center text-muted-foreground">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
 
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
