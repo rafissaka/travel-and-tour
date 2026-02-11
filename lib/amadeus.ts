@@ -110,14 +110,14 @@ export async function searchFlights(params: FlightSearchParams) {
     };
   } catch (error: any) {
     console.error('Amadeus Flight Search Error:', error);
-    
+
     // Parse error for better user messages
     const errorBody = error.response?.body;
     let userMessage = 'Failed to search flights. Please try again.';
-    
+
     if (errorBody?.errors && Array.isArray(errorBody.errors)) {
       const firstError = errorBody.errors[0];
-      
+
       // Handle specific error codes
       if (firstError.code === 141) {
         userMessage = 'No flights found for this route. The destination might not have available flights or the route is not supported. Please try a different destination or dates.';
@@ -131,11 +131,12 @@ export async function searchFlights(params: FlightSearchParams) {
         userMessage = firstError.detail;
       }
     }
-    
+
     return {
       success: false,
       error: errorBody || error.message,
       userMessage,
+      isRateLimit: error.response?.statusCode === 429,
     };
   }
 }
@@ -158,8 +159,9 @@ export async function searchHotels(params: HotelSearchParams) {
       };
     }
 
-    // Get hotel IDs (limit to first 50 for performance)
-    const hotelIds = hotelsResponse.data.slice(0, 50).map((hotel: any) => hotel.hotelId);
+    // Get hotel IDs (limit to first 12 for stability in Test environment)
+    // The test API often fails with 500 if too many IDs are requested at once
+    const hotelIds = hotelsResponse.data.slice(0, 12).map((hotel: any) => hotel.hotelId);
 
     // Step 2: Get offers for these hotels
     const offersResponse = await amadeus.shopping.hotelOffersSearch.get({
@@ -178,9 +180,19 @@ export async function searchHotels(params: HotelSearchParams) {
     };
   } catch (error: any) {
     console.error('Amadeus Hotel Search Error:', error);
+
+    // Check if it's a specific Amadeus error with a body
+    const errorBody = error.response?.body;
+    let userMessage = 'Unable to fetch hotel offers at this time.';
+
+    if (error.response?.statusCode === 500) {
+      userMessage = 'The hotel search service is currently experiencing high demand. Please try again with different dates or a different location.';
+    }
+
     return {
       success: false,
-      error: error.response?.body || error.message,
+      error: errorBody || error.message,
+      userMessage,
     };
   }
 }

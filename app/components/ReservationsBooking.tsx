@@ -10,6 +10,7 @@ import QuoteRequestModal from './QuoteRequestModal';
 import PackageQuoteModal from './PackageQuoteModal';
 import AirportCitySearch from './AirportCitySearch';
 import TravelerSelector from './TravelerSelector';
+import StandaloneSearchLoading from './StandaloneSearchLoading';
 
 type BookingType = 'flights' | 'hotels' | 'package';
 type PackageStep = 'select_type' | 'select_flight' | 'select_hotel' | 'review';
@@ -155,6 +156,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
     destination: '',
     departureDate: '',
     returnDate: '',
+    tripType: 'round-trip' as 'one-way' | 'round-trip',
     adults: 1,
     children: 0,
     infants: 0,
@@ -287,6 +289,11 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
 
   return (
     <div className="space-y-0">
+      {/* Standalone Search Loading Screen */}
+      <AnimatePresence>
+        {searching && <StandaloneSearchLoading />}
+      </AnimatePresence>
+
       {/* Hero Section with Flight Image */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-3xl mb-8">
         {/* Background Decorative Elements */}
@@ -487,17 +494,37 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                   </svg>
                 </div>
 
-                <div className="relative flex items-center gap-6">
-                  <motion.div
-                    initial={{ rotate: -15, scale: 0.8 }}
-                    animate={{ rotate: 0, scale: 1 }}
-                    className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner"
-                  >
-                    <Plane className="w-8 h-8 text-white" />
-                  </motion.div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white tracking-tight">Search Flights</h3>
-                    <p className="text-white/80 font-medium">Global destinations, local prices (GH₵)</p>
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <motion.div
+                      initial={{ rotate: -15, scale: 0.8 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner"
+                    >
+                      <Plane className="w-8 h-8 text-white" />
+                    </motion.div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white tracking-tight">Search Flights</h3>
+                      <p className="text-white/80 font-medium">Global destinations, local prices (GH₵)</p>
+                    </div>
+                  </div>
+
+                  {/* Trip Type Toggle */}
+                  <div className="flex bg-white/10 backdrop-blur-md p-1 rounded-xl border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setFlightForm({ ...flightForm, tripType: 'round-trip' })}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${flightForm.tripType === 'round-trip' ? 'bg-white text-blue-700 shadow-lg' : 'text-white hover:bg-white/5'}`}
+                    >
+                      Round Trip
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFlightForm({ ...flightForm, tripType: 'one-way' })}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${flightForm.tripType === 'one-way' ? 'bg-white text-blue-700 shadow-lg' : 'text-white hover:bg-white/5'}`}
+                    >
+                      One Way
+                    </button>
                   </div>
                 </div>
               </div>
@@ -568,7 +595,7 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                 </div>
 
                 {/* Dates Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`grid grid-cols-1 ${flightForm.tripType === 'round-trip' ? 'sm:grid-cols-2' : ''} gap-4`}>
                   <div className="relative">
                     <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
                       <Calendar className="w-4 h-4 text-primary" />
@@ -584,20 +611,22 @@ export default function ReservationsBooking({ isLoggedIn, onLoginRequired }: Res
                     />
                   </div>
 
-                  <div className="relative">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      Return Date
-                      <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={flightForm.returnDate}
-                      onChange={(e) => setFlightForm({ ...flightForm, returnDate: e.target.value })}
-                      min={flightForm.departureDate || new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-3.5 rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all hover:border-primary/50"
-                    />
-                  </div>
+                  {flightForm.tripType === 'round-trip' && (
+                    <div className="relative">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        Return Date
+                      </label>
+                      <input
+                        type="date"
+                        value={flightForm.returnDate}
+                        onChange={(e) => setFlightForm({ ...flightForm, returnDate: e.target.value })}
+                        min={flightForm.departureDate || new Date().toISOString().split('T')[0]}
+                        required={flightForm.tripType === 'round-trip'}
+                        className="w-full px-4 py-3.5 rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all hover:border-primary/50"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Travelers & Class Row */}

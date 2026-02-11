@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error || 'Failed to search hotels' },
+        {
+          error: result.userMessage || 'Failed to search hotels',
+          details: result.error
+        },
         { status: 500 }
       );
     }
